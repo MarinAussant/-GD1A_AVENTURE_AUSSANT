@@ -1,8 +1,54 @@
 var camera;
 var player;
+var infoPlayer;
 var cursors;
 
 var gameOver = false;
+
+class Player {
+
+    constructor(name){
+        this.name = name;
+
+        this.vitesse = 250;
+        this.force = 25;
+
+        this.direction = {x:1,y:0};
+
+        this.life = 100;
+        this.coin = 0;
+
+        this.getCape = false;
+        this.getBracelet = false;
+        this.getBoots = false;
+        this.getSword = false;
+        
+        this.isMoving = false;
+        this.isAttacking = false;
+        this.isBraceleting = false;
+        this.isPropulsing = false;
+
+        this.inventaire = [];
+    }
+
+}
+
+class Item {
+
+    constructor(name,soin){
+        this.name = name;
+        this.soin = soin;
+        this.regen = 35;
+        this.isDropped = false;
+    }
+
+}
+
+class Ennemi {
+
+    constructor()
+
+}
 
 class Menu extends Phaser.Scene{
 
@@ -13,13 +59,14 @@ class Menu extends Phaser.Scene{
     }
 
     preload(){
-        
+        this.load.image('background',"assets/ui/background.png");
+        this.load.image('play',"assets/ui/play.png");
     }
     
     create(){
 
-        this.add.image(0, 0, 'assets/ui/background').setOrigin(0,0).setScale(1);
-        var play = this.add.image(400, 300, 'assets/ui/play').setOrigin(0,0).setScale(1).setInteractive();
+        this.add.image(0, 0, 'background').setOrigin(0,0).setScale(0.8);
+        var play = this.add.image(400, 100, 'play').setOrigin(0,0).setScale(0.15).setInteractive();
 
         play.once('pointerup',this.loadGame,this);
 
@@ -33,6 +80,7 @@ class Menu extends Phaser.Scene{
     }
 
     loadGame(){
+        infoPlayer = new Player("Dione");
         this.scene.start("Game");
     }
 
@@ -48,7 +96,7 @@ class Game extends Phaser.Scene{
     }
 
     preload(){
-        this.load.image('background',"assets/images/Grass_Sample.png");
+        this.load.image('backgroundGame',"assets/images/Grass_Sample.png");
 
         //Load SpritSheet
         this.load.spritesheet('perso','assets/images/perso.png',
@@ -58,8 +106,9 @@ class Game extends Phaser.Scene{
     create(){
 
         camera = this.cameras.main.setSize(1920, 1080);
+        cursors = this.input.keyboard.createCursorKeys();
 
-        this.add.image(0,0,'background').setOrigin(0,0).setScale(2);
+        this.add.image(0,0,'backgroundGame').setOrigin(0,0).setScale(2);
 
         player = this.physics.add.sprite(50, 50, 'perso').setScale(1);
 
@@ -95,32 +144,94 @@ class Game extends Phaser.Scene{
     
     update(){
         
+
+
         if (gameOver){return;}
 
         // - DEPLACEMENT ET ANIMATION
-        if (cursors.left.isDown){
-            player.setVelocityX(-playerSpeed); //si la touche gauche est appuyée //alors vitesse négative en X
+        if (cursors.left.isDown && (!cursors.right.isDown && !cursors.down.isDown && !cursors.up.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : -1, y : 0};
+            player.setVelocityX(-infoPlayer.vitesse); //si la touche gauche est appuyée //alors vitesse négative en X
+            player.setVelocityY(0);
             player.anims.play('left', true); //et animation => gauche
-
         }
-        else if (cursors.right.isDown){ //sinon si la touche droite est appuyée
-            player.setVelocityX(playerSpeed); //alors vitesse positive en X
+
+        if (cursors.left.isDown && cursors.up.isDown && (!cursors.right.isDown && !cursors.down.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : -1, y : 1};
+            player.setVelocityX(-infoPlayer.vitesse * (Math.SQRT2)/2); //si la touche gauche est appuyée //alors vitesse négative en X
+            player.setVelocityY(-infoPlayer.vitesse * (Math.SQRT2/2)); // (RACINE CARRE 2) / 2
+            player.anims.play('left', true); //et animation => gauche
+        }
+
+        if (cursors.left.isDown && cursors.down.isDown && (!cursors.right.isDown && !cursors.up.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : -1, y : -1};
+            player.setVelocityX(-infoPlayer.vitesse * -(Math.SQRT2/2)); //si la touche gauche est appuyée //alors vitesse négative en X
+            player.setVelocityY(infoPlayer.vitesse * -(Math.SQRT2/2));
+            player.anims.play('left', true); //et animation => gauche
+        }
+
+
+        if (cursors.right.isDown && (!cursors.left.isDown && !cursors.down.isDown && !cursors.up.isDown)){ //sinon si la touche droite est appuyée
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : 1, y : 0};
+            player.setVelocityX(infoPlayer.vitesse); //alors vitesse positive en X
+            player.setVelocityY(0);
             player.anims.play('right', true); //et animation => droite
+        }
 
+        if (cursors.right.isDown && cursors.down.isDown && (!cursors.left.isDown && !cursors.up.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : 1, y : -1};
+            player.setVelocityX(infoPlayer.vitesse/1.5); //si la touche gauche est appuyée //alors vitesse négative en X
+            player.setVelocityY(infoPlayer.vitesse/1.5);
+            player.anims.play('right', true); //et animation => gauche
         }
-        else if (cursors.down.isDown){
-            player.setVelocityY(playerSpeed);
+
+        if (cursors.right.isDown && cursors.up.isDown && (!cursors.left.isDown && !cursors.down.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : 1, y : 1};
+            player.setVelocityX(infoPlayer.vitesse * (Math.SQRT2)/2); //si la touche gauche est appuyée //alors vitesse négative en X
+            player.setVelocityY(-infoPlayer.vitesse * (Math.SQRT2)/2);
+            player.anims.play('right', true); //et animation => gauche
+        }
+
+
+        if (cursors.left.isDown && cursors.down.isDown && (!cursors.right.isDown && !cursors.up.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : -1, y : -1};
+            player.setVelocityX(-infoPlayer.vitesse * (Math.SQRT2/2)); //si la touche gauche est appuyée //alors vitesse négative en X
+            player.setVelocityY(infoPlayer.vitesse * (Math.SQRT2/2));
+            player.anims.play('left', true); //et animation => gauche
+        }
+
+
+        if (cursors.down.isDown && (!cursors.right.isDown && !cursors.left.isDown && !cursors.up.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : 0, y : -1};
+            player.setVelocityX(0);
+            player.setVelocityY(infoPlayer.vitesse);
             player.anims.play('turn');
         }
-        else if (cursors.up.isDown){
-            player.setVelocityY(-playerSpeed);
+
+        if (cursors.up.isDown && (!cursors.right.isDown && !cursors.down.isDown && !cursors.left.isDown)){
+            infoPlayer.isMoving = true;
+            infoPlayer.direction = { x : 0, y : 1};
+            player.setVelocityX(0);
+            player.setVelocityY(-infoPlayer.vitesse);
             player.anims.play('turn');
         }
-        else{ // sinon
+
+        if (!cursors.left.isDown && !cursors.right.isDown && !cursors.down.isDown && !cursors.up.isDown){ 
+            infoPlayer.isMoving = false; // sinon
             player.setVelocityX(0);
             player.setVelocityY(0); //vitesse nulle
             player.anims.play('turn'); //animation fait face caméra
         }
+
+        console.log(infoPlayer.direction);
     
     }
 
