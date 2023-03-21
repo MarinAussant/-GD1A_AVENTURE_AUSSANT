@@ -46,7 +46,33 @@ class Item {
 
 class Ennemi {
 
-    constructor()
+    constructor(name, force, vitesse, distanceAggro, life, x, y){
+        this.id = Ennemi.incrementId();
+        this.name = name;
+        this.life = life;
+        this.force = force;
+        this.vitesse = vitesse;
+        this.distanceAggro = distanceAggro;
+
+        this.direction = {x : 0, y: 0};
+        this.position = {x : x, y : y};
+    }
+
+    static incrementId(){
+        if (!this.lastestId) { this.lastestId = 1; }
+        else { this.lastestId++; }
+        return this.lastestId;
+    }
+
+}
+
+class Mercenaire extends Ennemi {
+
+    constructor(name,x,y){
+
+        super(name, 25, 200, 300, 100,x,y)
+
+    }
 
 }
 
