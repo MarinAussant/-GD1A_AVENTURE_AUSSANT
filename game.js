@@ -1,6 +1,8 @@
 var camera;
 var player;
+var ennemi;
 var infoPlayer;
+var infoEnnemi;
 var cursors;
 
 var gameOver = false;
@@ -70,11 +72,20 @@ class Mercenaire extends Ennemi {
 
     constructor(name,x,y){
 
-        super(name, 25, 200, 300, 100,x,y)
+        super(name, 25, 150, 250, 100,x,y)
+        this.isAggroing = true;
+        this.isMoving = false;
+        this.isBreaking = false;
+
+        this.cooldown = 0;
+
+        this.radius = 450;
 
     }
 
 }
+
+
 
 class Menu extends Phaser.Scene{
 
@@ -106,7 +117,6 @@ class Menu extends Phaser.Scene{
     }
 
     loadGame(){
-        infoPlayer = new Player("Dione");
         this.scene.start("Game");
     }
 
@@ -127,9 +137,14 @@ class Game extends Phaser.Scene{
         //Load SpritSheet
         this.load.spritesheet('perso','assets/images/perso.png',
         { frameWidth: 32, frameHeight: 48 });
+
+        this.load.image('ennemi',"assets/images/ennemi.png");
     }
     
     create(){
+
+        infoPlayer = new Player("Dione");
+        infoEnnemi = new Mercenaire("Jason",500,100);
 
         camera = this.cameras.main.setSize(1920, 1080);
         cursors = this.input.keyboard.createCursorKeys();
@@ -137,12 +152,15 @@ class Game extends Phaser.Scene{
         this.add.image(0,0,'backgroundGame').setOrigin(0,0).setScale(2);
 
         player = this.physics.add.sprite(50, 50, 'perso').setScale(1);
+        ennemi = this.physics.add.sprite(500, 100, 'ennemi').setScale(0.125);
 
         camera.startFollow(player);
         camera.setDeadzone(100,100);
         camera.setBounds(0,0,1920,1080);
 
         player.setCollideWorldBounds(true);
+        ennemi.setCollideWorldBounds(true);
+        this.physics.add.collider(player,ennemi);
 
         // - ANIMATIONS
         this.anims.create({
@@ -257,12 +275,67 @@ class Game extends Phaser.Scene{
             player.anims.play('turn'); //animation fait face caméra
         }
 
-        console.log(infoPlayer.direction);
+        this.moveEnnemi(player);
     
     }
 
     loadGame(){
         this.scene.start("Game");
+    }
+
+    moveEnnemi(player){
+
+        if (infoEnnemi.isBreaking){
+
+            ennemi.setVelocityX(0);
+            ennemi.setVelocityY(0);
+
+        }
+
+        if (infoEnnemi.isMoving){
+
+            if (Math.abs(ennemi.direction.x) - Math.abs(ennemi.direction.y) == 0){
+                ennemi.setVelocityX(infoEnnemi.direction.x * (infoEnnemi.vitesse * (Math.SQRT2/2)));
+                ennemi.setVelocityY(infoEnnemi.direction.y * (infoEnnemi.vitesse * (Math.SQRT2/2)));
+            }
+            else {
+                ennemi.setVelocityX(infoEnnemi.direction.x * infoEnnemi.vitesse);
+                ennemi.setVelocityY(infoEnnemi.direction.y * infoEnnemi.vitesse);
+            }
+
+        }
+
+        if (infoEnnemi.isAggroing){
+
+            let directions = [
+                {x: 1, y: 0},
+                {x: 1, y: 1},
+                {x: 0, y: 1},
+                {x: -1, y: 1},
+                {x: -1, y: 0},
+                {x: -1, y: -1},
+                {x: 0, y: -1},
+                {x: 1, y: -1},
+            ];
+
+            var angle = Phaser.Math.Angle.Between(player.x, player.y, ennemi.x, ennemi.y);
+            //var direction = {x : player.position.x}player.position - ennemi.position; 
+            //console.log(angle);
+            let index = Math.round(angle / (Math.PI / 4)) + 4;
+            index > 7 ? index -= 8 : index;
+            var direction = directions[index];
+
+            if (Math.abs(direction.x) - Math.abs(direction.y) == 0){
+                ennemi.setVelocityX(direction.x * (infoEnnemi.vitesse * (Math.SQRT2/2)));
+                ennemi.setVelocityY(direction.y * (infoEnnemi.vitesse * (Math.SQRT2/2)));
+            }
+            else {
+                ennemi.setVelocityX(direction.x * infoEnnemi.vitesse);
+                ennemi.setVelocityY(direction.y * infoEnnemi.vitesse);
+            }
+        }
+
+
     }
 
 
