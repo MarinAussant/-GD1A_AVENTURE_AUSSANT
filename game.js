@@ -72,7 +72,7 @@ class Mercenaire extends Ennemi {
 
     constructor(name,x,y){
 
-        super(name, 25, 150, 250, 100,x,y)
+        super(name, 25, 150, 150, 100,x,y)
         this.isAggroing = true;
         this.isMoving = false;
         this.isBreaking = false;
@@ -305,6 +305,10 @@ class Game extends Phaser.Scene{
 
         }
 
+        if(infoEnnemi.isReturning){
+
+        }
+
         if (infoEnnemi.isAggroing){
 
             let directions = [
@@ -323,6 +327,7 @@ class Game extends Phaser.Scene{
             //console.log(angle);
             let index = Math.round(angle / (Math.PI / 4)) + 4;
             index > 7 ? index -= 8 : index;
+            console.log(index);
             var direction = directions[index];
 
             if (Math.abs(direction.x) - Math.abs(direction.y) == 0){
@@ -335,14 +340,19 @@ class Game extends Phaser.Scene{
             }
         }
 
+        if(Phaser.Math.Distance.Between(player.x, player.y, ennemi.x, ennemi.y) < infoEnnemi.distanceAggro){
+            infoEnnemi.isAggroing = true;
+        }
+        else{
+            infoEnnemi.isAggroing = false;
+            infoEnnemi.isBreaking = true;
+        }
+
 
     }
 
 
 }
-
-
-
 
 
 var config = {
