@@ -597,7 +597,8 @@ var config = {
         gravity: { x: 0 , y:0 },
         debug: true
     }},
-    scene: [Menu,Game,MainLevel]
+    scene: [Menu,Game,MainLevel],
+    pixelArt: true,
 };
 
 new Phaser.Game(config);
