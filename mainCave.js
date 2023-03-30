@@ -14,7 +14,7 @@ export class MainCave extends Phaser.Scene{
     {
         this.entrance = data.entrance;
 		if (this.entrance == "main" || this.entrance == "other"){
-			this.cameras.main.fadeIn(800, 35, 22, 21);
+			this.cameras.main.fadeIn(500, 35, 22, 21);
         }
 		else {
 			this.cameras.main.fadeIn(5000, 35, 22, 21);
@@ -116,16 +116,16 @@ export class MainCave extends Phaser.Scene{
 
         if (this.canOut && (this.player.body.position.x <= 2428 && this.player.body.position.y <= 2782)){
             this.canOut = false;
-		    this.cameras.main.fadeOut(600, 255, 254, 170);
-			this.time.delayedCall(700, () => {
+		    this.cameras.main.fadeOut(400, 255, 254, 170);
+			this.time.delayedCall(500, () => {
 					this.scene.start('Outdoor', {entrance: "mainCave"});
 			})
 
         }
         else if (this.canOut && (this.player.body.position.x <= 2735 && this.player.body.position.x >= 2648 && this.player.body.position.y >= 3413)){
             this.canOut = false;
-            this.cameras.main.fadeOut(600, 255, 254, 170);
-			this.time.delayedCall(600, () => {
+            this.cameras.main.fadeOut(400, 255, 254, 170);
+			this.time.delayedCall(500, () => {
 					this.scene.start('Outdoor', {entrance: "mainCave2"});
 			})
         }
