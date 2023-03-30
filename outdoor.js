@@ -5,14 +5,14 @@ export class Outdoor extends Phaser.Scene{
         super("Outdoor");
         this.player;
         this.cursors;
-        this.camera;
+        this.canOut = true;
     }
 
     init(data)
     {
         this.entrance = data.entrance;
 		this.cameras.main.fadeIn(800, 255, 254, 170);
-       
+        this.canOut = true;
     }
 
     preload(){
@@ -149,10 +149,10 @@ export class Outdoor extends Phaser.Scene{
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         // CAMERA
-        this.camera = this.cameras.main.setSize(1920, 1080);
-        this.camera.startFollow(this.player);
-        this.camera.setDeadzone(20,20);
-        this.camera.setBounds(0,0,4960,6400);
+        this.cameras.main.setSize(1920, 1080);
+        this.cameras.main.startFollow(this.player);
+        this.cameras.main.setDeadzone(20,20);
+        this.cameras.main.setBounds(0,0,4960,6400);
         this.cameras.main.setZoom(2);
 
         // - ANIMATIONS
@@ -185,16 +185,18 @@ export class Outdoor extends Phaser.Scene{
 
         // TRIGGERS
 
-        if (this.player.body.position.x >= 2331 && this.player.body.position.y <= 2749 && this.player.body.position.y >= 2656){
-        
+        if (this.canOut && (this.player.body.position.x >= 2331 && this.player.body.position.y <= 2749 && this.player.body.position.y >= 2656)){
+            
+            this.canOut = false;
 		    this.cameras.main.fadeOut(600, 35, 22, 21);
 
 			this.time.delayedCall(700, () => {
 					this.scene.start('MainCave', {entrance: "main"});
 			})
         }
-        else if (this.player.body.position.x >= 2784 && this.player.body.position.x <= 2865 && this.player.body.position.y <= 3462 ){
+        else if (this.canOut && (this.player.body.position.x >= 2784 && this.player.body.position.x <= 2865 && this.player.body.position.y <= 3462 )){
             
+            this.canOut = false;
             this.cameras.main.fadeOut(600, 35, 22, 21);
             
 			this.time.delayedCall(700, () => {
@@ -205,14 +207,13 @@ export class Outdoor extends Phaser.Scene{
         // - MOVEMENT 
         this.playerMovement();
 
-        /*
+        
         if (this.keySpace.isDown){
-            this.cameras.main.fadeOut(500,0,0,0);
-            this.time.delayedCall(1000, () => {
-                this.cameras.main.fadeIn(4000,255,254,170);
-            });
+
+            this.cameras.main.fadeOut(2000,255,254,170);
+          
         }
-        */
+        
     }
 
     playerMovement(){

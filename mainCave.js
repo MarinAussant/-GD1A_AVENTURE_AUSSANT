@@ -6,7 +6,7 @@ export class MainCave extends Phaser.Scene{
         super("MainCave");
         this.player;
         this.cursors;
-        this.camera;
+        this.canOut = true;
 
     }
 
@@ -19,6 +19,7 @@ export class MainCave extends Phaser.Scene{
 		else {
 			this.cameras.main.fadeIn(5000, 35, 22, 21);
         }
+        this.canOut = true;
     }
 
     preload(){
@@ -50,7 +51,7 @@ export class MainCave extends Phaser.Scene{
             this.player.direction = {x:1,y:0};
         }
         else if (this.entrance == "other"){
-            this.player = this.physics.add.sprite(2694, 3393, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(2694, 3350, 'perso').setScale(1);
             this.player.direction = {x:0,y:-1};
         }
         else {
@@ -78,10 +79,10 @@ export class MainCave extends Phaser.Scene{
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         // - CAMERA
-        this.camera = this.cameras.main.setSize(1920, 1080);
-        this.camera.startFollow(this.player);
-        this.camera.setDeadzone(20,20);
-        this.camera.setBounds(0,0,4960,6400);
+        this.cameras.main.setSize(1920, 1080);
+        this.cameras.main.startFollow(this.player);
+        this.cameras.main.setDeadzone(20,20);
+        this.cameras.main.setBounds(0,0,4960,6400);
         this.cameras.main.setZoom(2);
 
         // - ANIMATIONS
@@ -113,15 +114,16 @@ export class MainCave extends Phaser.Scene{
 
         // - TRIGGERS
 
-        if (this.player.body.position.x <= 2428 && this.player.body.position.y <= 2782){
-        
+        if (this.canOut && (this.player.body.position.x <= 2428 && this.player.body.position.y <= 2782)){
+            this.canOut = false;
 		    this.cameras.main.fadeOut(600, 255, 254, 170);
 			this.time.delayedCall(700, () => {
 					this.scene.start('Outdoor', {entrance: "mainCave"});
 			})
 
         }
-        else if (this.player.body.position.x <= 2735 && this.player.body.position.x >= 2648 && this.player.body.position.y >= 3413){
+        else if (this.canOut && (this.player.body.position.x <= 2735 && this.player.body.position.x >= 2648 && this.player.body.position.y >= 3413)){
+            this.canOut = false;
             this.cameras.main.fadeOut(600, 255, 254, 170);
 			this.time.delayedCall(600, () => {
 					this.scene.start('Outdoor', {entrance: "mainCave2"});
