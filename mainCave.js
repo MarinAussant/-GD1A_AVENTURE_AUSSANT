@@ -63,6 +63,9 @@ export class MainCave extends Phaser.Scene{
         this.player.inCave = true;
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
+        var rectangle = this.add.rectangle(this.player.x  ,this.player.y,32,32,0xffffff);
+        this.player.extraCollide = this.physics.add.existing(rectangle);
+        this.player.extraCollide.alpha = 0; 
 
         // - DECORS DEVANT
         const Cave_Princ_Wall_Front = carteDuNiveau.createLayer("Cave_Princ_Wall_Front",tileset);
@@ -111,6 +114,11 @@ export class MainCave extends Phaser.Scene{
     
     update(){
         console.log(this.player.body.position);
+
+        // - SUIVI DE EXTRACOLLIDE
+
+        this.player.extraCollide.x = this.player.x;
+        this.player.extraCollide.y = this.player.y;
 
         // - TRIGGERS
 

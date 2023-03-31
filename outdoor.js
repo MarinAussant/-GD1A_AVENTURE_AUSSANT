@@ -22,6 +22,8 @@ export class Outdoor extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 48 });
         this.load.image('ennemi',"assets/images/ennemi.png");
 
+        this.load.image('rect',"assets/images/rect.png")
+
         //Load Tiles + TileSet
         this.load.image("Phaser_tuilesdejeu","assets/images/tileset.png");
         this.load.tilemapTiledJSON("carte","assets/jsonTiled.json");
@@ -130,9 +132,15 @@ export class Outdoor extends Phaser.Scene{
         }
 
         this.player.isMoving = false;
+        this.player.canMove = true;
         this.player.inCave = true;
+        this.player.isFalling = false;
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
+
+        var rect = this.add.rectangle(this.player.x,this.player.y,35,48);
+        this.extraCollide = this.physics.add.existing(rect);
+        this.extraCollide.alpha = 0;
 
         const Ext_Wall_Front_Other = carteDuNiveau.createLayer("Ext_Wall_Front_Other",tileset);
         const Ext_Wall_Front = carteDuNiveau.createLayer("Ext_Wall_Front",tileset);
@@ -143,12 +151,15 @@ export class Outdoor extends Phaser.Scene{
         Ext_Collide.setCollisionByProperty({ collide: true });
         Ext_Collide.alpha = 0;
         this.physics.add.collider(this.player, Ext_Collide);
+        
 
         // OVERLAP FALLING EXTERIEUR
         const Ext_FallOverLap = carteDuNiveau.createLayer("Ext_FallOverLap",tileset);
-        Ext_FallOverLap.setCollisionByProperty({ fall: true });
-        Ext_FallOverLap.alpha = 0.1;
-        this.physics.add.overlapTiles(this.player, Ext_FallOverLap,this.test,null,this);
+        Ext_FallOverLap.setCollisionByProperty({ fall: true },true);
+        Ext_FallOverLap.alpha = 0;
+        this.physics.add.collider(this.extraCollide, Ext_FallOverLap,this.playerFalling,null,this);
+        
+        
 
         // CONTRÔLE CLAVIER
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -186,8 +197,12 @@ export class Outdoor extends Phaser.Scene{
     
     
     update(){
+        //console.log(this.player.body.position);
 
-        console.log(this.player.body.position);
+        // - SUIVI DE EXTRACOLLIDE
+        
+        this.physics.moveTo(this.extraCollide,this.player.x,this.player.y+25,PLAYER_SPEED);
+
 
         // TRIGGERS
 
@@ -211,7 +226,10 @@ export class Outdoor extends Phaser.Scene{
         }
 
         // - MOVEMENT 
-        this.playerMovement();
+        if(this.player.canMove == true){
+            this.playerMovement();
+        }
+        
 
         
         if (this.keySpace.isDown){
@@ -299,8 +317,25 @@ export class Outdoor extends Phaser.Scene{
         }
     }
 
-    test(){
-        console.log("OVERLAPINGGGG 100%%%% EXTRA SUPER MEGA");
+    playerFalling(){
+        if (this.player.isFalling == false){
+            this.player.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/10);
+            this.player.setVelocityY(this.player.body.velocity.y/10); 
+            this.tweens.add({
+                targets:this.player,
+                angle:45,
+                scaleX:0,
+                scaleY:0,
+                repeat:0,
+                ease: 'Sine.easeIn'
+            })
+            this.time.delayedCall(1000, () => {
+                this.scene.start('Outdoor', {entrance: this.entrance});
+        })
+        }
+
+        this.player.isFalling = true;
     }
 
     loadGame(){
