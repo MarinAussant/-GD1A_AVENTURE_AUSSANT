@@ -144,6 +144,12 @@ export class Outdoor extends Phaser.Scene{
         Ext_Collide.alpha = 0;
         this.physics.add.collider(this.player, Ext_Collide);
 
+        // OVERLAP FALLING EXTERIEUR
+        const Ext_FallOverLap = carteDuNiveau.createLayer("Ext_FallOverLap",tileset);
+        Ext_FallOverLap.setCollisionByProperty({ fall: true });
+        Ext_FallOverLap.alpha = 0.1;
+        this.physics.add.overlapTiles(this.player, Ext_FallOverLap,this.test,null,this);
+
         // CONTRÔLE CLAVIER
         this.cursors = this.input.keyboard.createCursorKeys();
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -291,6 +297,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.setVelocityY(0); 
             this.player.anims.play('turn'); 
         }
+    }
+
+    test(){
+        console.log("OVERLAPINGGGG 100%%%% EXTRA SUPER MEGA");
     }
 
     loadGame(){
