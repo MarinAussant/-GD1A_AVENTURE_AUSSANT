@@ -7,12 +7,14 @@ export class MainCave extends Phaser.Scene{
         this.player;
         this.cursors;
         this.canOut = true;
+        this.playerState; 
 
     }
 
     init(data)
     {
         this.entrance = data.entrance;
+        this.playerState = data.playerState;
 		if (this.entrance == "main" || this.entrance == "other"){
 			this.cameras.main.fadeIn(500, 35, 22, 21);
         }
@@ -57,15 +59,30 @@ export class MainCave extends Phaser.Scene{
         else {
             this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
             this.player.direction = {x:0,y:0};
+            this.playerState = {
+                isMoving : false,
+                isFalling : false,
+
+                canMove : true,
+
+                unlockSortieTemple : true, 
+                unlockMainCave : false,
+                unlockPropulsa : true,
+                unlockSecret1 : false,
+                unlockSecret2 : false,
+                unlockSecret3 : false,
+                unlockCaveau2 : true,
+
+                getSword : false,
+                getCape : false,
+                getBracelet : false,
+                getBoots : false
+            }
         }
         
-        this.player.isMoving = false;
-        this.player.inCave = true;
+        this.playerState.canMove = true;
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
-        var rectangle = this.add.rectangle(this.player.x  ,this.player.y,32,32,0xffffff);
-        this.player.extraCollide = this.physics.add.existing(rectangle);
-        this.player.extraCollide.alpha = 0; 
 
         // - DECORS DEVANT
         const Cave_Princ_Wall_Front = carteDuNiveau.createLayer("Cave_Princ_Wall_Front",tileset);
@@ -113,35 +130,39 @@ export class MainCave extends Phaser.Scene{
     
     
     update(){
-        console.log(this.player.body.position);
-
-        // - SUIVI DE EXTRACOLLIDE
-
-        this.player.extraCollide.x = this.player.x;
-        this.player.extraCollide.y = this.player.y;
+        //console.log(this.player.body.position);
 
         // - TRIGGERS
 
         if (this.canOut && (this.player.body.position.x <= 2428 && this.player.body.position.y <= 2782)){
             this.canOut = false;
 		    this.cameras.main.fadeOut(400, 255, 254, 170);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+
 			this.time.delayedCall(500, () => {
-					this.scene.start('Outdoor', {entrance: "mainCave"});
+					this.scene.start('Outdoor', {entrance: "mainCave", playerState : this.playerState});
 			})
 
         }
         else if (this.canOut && (this.player.body.position.x <= 2735 && this.player.body.position.x >= 2648 && this.player.body.position.y >= 3413)){
             this.canOut = false;
             this.cameras.main.fadeOut(400, 255, 254, 170);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+
 			this.time.delayedCall(500, () => {
-					this.scene.start('Outdoor', {entrance: "mainCave2"});
+					this.scene.start('Outdoor', {entrance: "mainCave2", playerState : this.playerState});
 			})
         }
 
         // - MOVEMENT
 
-        this.playerMovement();
-
+        if(this.playerState.canMove == true){
+            this.playerMovement();
+        }
         /*this.moveEnnemi(player);*/
     
     }
@@ -151,7 +172,7 @@ export class MainCave extends Phaser.Scene{
         // - DEPLACEMENT ET ANIMATION
 
         if (this.cursors.left.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = {x : -1, y : 0};
             this.player.setVelocityX(-PLAYER_SPEED); //si la touche gauche est appuyée //alors vitesse négative en X
             this.player.setVelocityY(0);
@@ -159,7 +180,7 @@ export class MainCave extends Phaser.Scene{
         }
 
         if (this.cursors.left.isDown && this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : 1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2)/2); //si la touche gauche est appuyée //alors vitesse négative en X
             this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2/2)); // (RACINE CARRE 2) / 2
@@ -167,7 +188,7 @@ export class MainCave extends Phaser.Scene{
         }
 
         if (this.cursors.left.isDown && this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : -1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2/2));
             this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2/2));
@@ -176,7 +197,7 @@ export class MainCave extends Phaser.Scene{
 
 
         if (this.cursors.right.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){ //sinon si la touche droite est appuyée
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 0};
             this.player.setVelocityX(PLAYER_SPEED);
             this.player.setVelocityY(0);
@@ -184,7 +205,7 @@ export class MainCave extends Phaser.Scene{
         }
 
         if (this.cursors.right.isDown && this.cursors.down.isDown && (!this.cursors.left.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : -1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
             this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2)/2);
@@ -192,7 +213,7 @@ export class MainCave extends Phaser.Scene{
         }
 
         if (this.cursors.right.isDown && this.cursors.up.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
             this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2)/2);
@@ -200,7 +221,7 @@ export class MainCave extends Phaser.Scene{
         }
 
         if (this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.left.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : -1};
             this.player.setVelocityX(0);
             this.player.setVelocityY(PLAYER_SPEED);
@@ -208,7 +229,7 @@ export class MainCave extends Phaser.Scene{
         }
 
         if (this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : 1};
             this.player.setVelocityX(0);
             this.player.setVelocityY(-PLAYER_SPEED);
@@ -216,7 +237,7 @@ export class MainCave extends Phaser.Scene{
         }
 
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown){ 
-            this.player.isMoving = false; 
+            this.playerState.isMoving = false; 
             this.player.setVelocityX(0);
             this.player.setVelocityY(0); 
             this.player.anims.play('turn'); 

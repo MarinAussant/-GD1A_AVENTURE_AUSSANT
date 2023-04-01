@@ -3,14 +3,15 @@ export class Outdoor extends Phaser.Scene{
 
     constructor(){
         super("Outdoor");
-        this.player;
         this.cursors;
         this.canOut = true;
+        this.player;
     }
 
     init(data)
     {
         this.entrance = data.entrance;
+        this.playerState = data.playerState;
 		this.cameras.main.fadeIn(500, 255, 254, 170);
         this.canOut = true;
     }
@@ -71,9 +72,6 @@ export class Outdoor extends Phaser.Scene{
         const Cave_Secret2_Wall = carteDuNiveau.createLayer("Cave_Secret2_Wall",tileset);
         const Cave_Secret2_Fall = carteDuNiveau.createLayer("Cave_Secret2_Fall",tileset);
 
-        const Cave_Secret1_Ground = carteDuNiveau.createLayer("Cave_Secret1_Ground",tileset);
-        const Cave_Secret1_Wall = carteDuNiveau.createLayer("Cave_Secret1_Wall",tileset);
-        const Cave_Secret1_Fall = carteDuNiveau.createLayer("Cave_Secret1_Fall",tileset);
         */
         // EXTERIEUR
         
@@ -89,7 +87,6 @@ export class Outdoor extends Phaser.Scene{
         const Donjon = carteDuNiveau.createLayer("Donjon",tileset);
 
         // Chargement du joueur...
-
         if (this.entrance == "mainCave"){
             this.player = this.physics.add.sprite(2313, 2724, 'perso').setScale(1);
             this.player.direction = {x:-1,y:0};
@@ -107,15 +104,15 @@ export class Outdoor extends Phaser.Scene{
             this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "secret1"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(1650, 3250, 'perso').setScale(1);
             this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "secret2"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(1922, 3791, 'perso').setScale(1);
             this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "secret3"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(1944, 4512, 'perso').setScale(1);
             this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "propulsaEnter"){
@@ -131,10 +128,8 @@ export class Outdoor extends Phaser.Scene{
             this.player.direction = {x:0,y:-1};
         }
 
-        this.player.isMoving = false;
-        this.player.canMove = true;
-        this.player.inCave = true;
-        this.player.isFalling = false;
+        this.playerState.isFalling = false;
+        this.playerState.canMove = true;
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
 
@@ -142,8 +137,80 @@ export class Outdoor extends Phaser.Scene{
         this.extraCollide = this.physics.add.existing(rect);
         this.extraCollide.alpha = 0;
 
+
         const Ext_Wall_Front_Other = carteDuNiveau.createLayer("Ext_Wall_Front_Other",tileset);
         const Ext_Wall_Front = carteDuNiveau.createLayer("Ext_Wall_Front",tileset);
+
+        // SI UNLOCK SECONDE MAIN CAVE
+        if (this.playerState.unlockMainCave){
+            const Ext_OpenPorte_MainCave = carteDuNiveau.createLayer("Ext_OpenPorte_MainCave",tileset);
+        }
+        else {
+            const Ext_ClosePorte_MainCave = carteDuNiveau.createLayer("Ext_ClosePorte_MainCave",tileset);
+            Ext_ClosePorte_MainCave.setCollisionByProperty({ collide: true });
+            this.physics.add.collider(this.player, Ext_ClosePorte_MainCave);
+        }
+
+        // SI UNLOCK SORTIE TEMPLE
+        if (this.playerState.unlockSortieTemple){
+            const Ext_OpenPorte_SortieTemple = carteDuNiveau.createLayer("Ext_OpenPorte_SortieTemple",tileset);
+        }
+        else {
+            const Ext_ClosePorte_SortieTemple = carteDuNiveau.createLayer("Ext_ClosePorte_SortieTemple",tileset);
+            Ext_ClosePorte_SortieTemple.setCollisionByProperty({ collide: true });
+            this.physics.add.collider(this.player, Ext_ClosePorte_SortieTemple);
+        }
+
+        // SI UNLOCK PROPULSA PORTE
+        if (this.playerState.unlockPropulsa){
+            const Ext_OpenPorte_Propulsa = carteDuNiveau.createLayer("Ext_OpenPorte_Propulsa",tileset);
+        }
+        else {
+            const Ext_ClosePorte_Propulsa = carteDuNiveau.createLayer("Ext_ClosePorte_Propulsa",tileset);
+            Ext_ClosePorte_Propulsa.setCollisionByProperty({ collide: true });
+            this.physics.add.collider(this.player, Ext_ClosePorte_Propulsa);
+        }
+
+        // SI UNLOCK SECRET 1
+        if (this.playerState.unlockSecret1){
+            const Ext_OpenPorte_Secret1 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret1",tileset);
+        }
+        else {
+            const Ext_ClosePorte_Secret1 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret1",tileset);
+            Ext_ClosePorte_Secret1.setCollisionByProperty({ collide: true });
+            this.physics.add.collider(this.player, Ext_ClosePorte_Secret1);
+        }
+
+        // SI UNLOCK SECRET 2
+        if (this.playerState.unlockSecret2){
+            const Ext_OpenPorte_Secret2 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret2",tileset);
+        }
+        else {
+            const Ext_ClosePorte_Secret2 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret2",tileset);
+            Ext_ClosePorte_Secret2.setCollisionByProperty({ collide: true });
+            this.physics.add.collider(this.player, Ext_ClosePorte_Secret2);
+        }
+
+        // SI UNLOCK SECRET 3
+        if (this.playerState.unlockSecret3){
+            const Ext_OpenPorte_Secret3 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret3",tileset);
+        }
+        else {
+            const Ext_ClosePorte_Secret3 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret3",tileset);
+            Ext_ClosePorte_Secret3.setCollisionByProperty({ collide: true });
+            this.physics.add.collider(this.player, Ext_ClosePorte_Secret3);
+        }
+
+        // SI UNLOCK CAVEAU 2
+        if (this.playerState.unlockCaveau2){
+            const Ext_OpenPorte_Caveau2 = carteDuNiveau.createLayer("Ext_OpenPorte_Caveau2",tileset);
+        }
+        else {
+            const Ext_ClosePorte_Caveau2 = carteDuNiveau.createLayer("Ext_ClosePorte_Caveau2",tileset);
+            Ext_ClosePorte_Caveau2.setCollisionByProperty({ collide: true });
+            this.physics.add.collider(this.player, Ext_ClosePorte_Caveau2);
+        }
+
         const Ext_Exit = carteDuNiveau.createLayer("Ext_Exit",tileset);
 
         // COLLISIONS EXTERIEUR
@@ -197,7 +264,7 @@ export class Outdoor extends Phaser.Scene{
     
     
     update(){
-        //console.log(this.player.body.position);
+        console.log(this.player.body.position);
 
         // - SUIVI DE EXTRACOLLIDE
         
@@ -206,27 +273,74 @@ export class Outdoor extends Phaser.Scene{
 
         // TRIGGERS
 
+        //MAIN CAVE
         if (this.canOut && (this.player.body.position.x >= 2331 && this.player.body.position.y <= 2749 && this.player.body.position.y >= 2656)){
             
             this.canOut = false;
 		    this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
 
 			this.time.delayedCall(500, () => {
-					this.scene.start('MainCave', {entrance: "main"});
+					this.scene.start('MainCave', {entrance: "main", playerState : this.playerState});
 			})
         }
-        else if (this.canOut && (this.player.body.position.x >= 2784 && this.player.body.position.x <= 2865 && this.player.body.position.y <= 3462 )){
+        //SECOND MAIN CAVE
+        else if (this.canOut && (this.player.body.position.x >= 2784 && this.player.body.position.x <= 2865 && this.player.body.position.y <= 3420 )){
             
             this.canOut = false;
             this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
             
 			this.time.delayedCall(500, () => {
-					this.scene.start('MainCave', {entrance: "other"});
+					this.scene.start('MainCave', {entrance: "other", playerState : this.playerState});
+			})
+        }
+        //SECRET 1
+        else if (this.canOut && (this.player.body.position.x <= 1623 && this.player.body.position.x >= 1580 && this.player.body.position.y <= 3293 && this.player.body.position.y >= 3232 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('Secret1', {entrance: "outdoor", playerState : this.playerState});
+			})
+        }
+        //SECRET 2
+        else if (this.canOut && (this.player.body.position.x <= 1960  && this.player.body.position.x >= 1948 && this.player.body.position.y <= 3805 && this.player.body.position.y >= 3744 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('Secret2', {entrance: "outdoor", playerState : this.playerState});
+			})
+        }
+        //SECRET 3
+        else if (this.canOut && (this.player.body.position.x <= 1969  && this.player.body.position.x >= 1920 && this.player.body.position.y <= 4490 && this.player.body.position.y >= 4470 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('Secret3', {entrance: "outdoor", playerState : this.playerState});
 			})
         }
 
         // - MOVEMENT 
-        if(this.player.canMove == true){
+        if(this.playerState.canMove == true){
             this.playerMovement();
         }
         
@@ -245,7 +359,7 @@ export class Outdoor extends Phaser.Scene{
         // - DEPLACEMENT ET ANIMATION
 
         if (this.cursors.left.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = {x : -1, y : 0};
             this.player.setVelocityX(-PLAYER_SPEED); 
             this.player.setVelocityY(0);
@@ -253,7 +367,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (this.cursors.left.isDown && this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : 1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2)/2); 
             this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2/2)); 
@@ -261,7 +375,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (this.cursors.left.isDown && this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : -1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2/2));
             this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2/2));
@@ -270,7 +384,7 @@ export class Outdoor extends Phaser.Scene{
 
 
         if (this.cursors.right.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){ //sinon si la touche droite est appuyée
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 0};
             this.player.setVelocityX(PLAYER_SPEED);
             this.player.setVelocityY(0);
@@ -278,7 +392,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (this.cursors.right.isDown && this.cursors.down.isDown && (!this.cursors.left.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : -1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
             this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2)/2);
@@ -286,7 +400,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (this.cursors.right.isDown && this.cursors.up.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
             this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2)/2);
@@ -294,7 +408,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.left.isDown && !this.cursors.up.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : -1};
             this.player.setVelocityX(0);
             this.player.setVelocityY(PLAYER_SPEED);
@@ -302,7 +416,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown)){
-            this.player.isMoving = true;
+            this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : 1};
             this.player.setVelocityX(0);
             this.player.setVelocityY(-PLAYER_SPEED);
@@ -310,7 +424,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown){ 
-            this.player.isMoving = false; 
+            this.playerState.isMoving = false; 
             this.player.setVelocityX(0);
             this.player.setVelocityY(0); 
             this.player.anims.play('turn'); 
@@ -318,8 +432,8 @@ export class Outdoor extends Phaser.Scene{
     }
 
     playerFalling(){
-        if (this.player.isFalling == false){
-            this.player.canMove = false;
+        if (this.playerState.isFalling == false){
+            this.playerState.canMove = false;
             this.player.setVelocityX(this.player.body.velocity.x/10);
             this.player.setVelocityY(this.player.body.velocity.y/10); 
             this.tweens.add({
@@ -331,15 +445,11 @@ export class Outdoor extends Phaser.Scene{
                 ease: 'Sine.easeIn'
             })
             this.time.delayedCall(1000, () => {
-                this.scene.start('Outdoor', {entrance: this.entrance});
+                this.scene.start('Outdoor', {entrance: this.entrance, playerState : this.playerState});
         })
         }
 
-        this.player.isFalling = true;
-    }
-
-    loadGame(){
-        this.scene.start("Game");
+        this.playerState.isFalling = true;
     }
 
 }
