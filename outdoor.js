@@ -6,6 +6,7 @@ export class Outdoor extends Phaser.Scene{
         this.cursors;
         this.canOut = true;
         this.player;
+        this.first = true;
     }
 
     init(data)
@@ -41,38 +42,6 @@ export class Outdoor extends Phaser.Scene{
 
         // Chargement de TOUT les calques... LONG !
 
-        // LES CAVES
-        /*
-        const Cave_Caveau1_Ground = carteDuNiveau.createLayer("Cave_Caveau1_Ground",tileset);
-        const Cave_Caveau1_Wall = carteDuNiveau.createLayer("Cave_Caveau1_Wall",tileset);
-        const Cave_Caveau1_Fall = carteDuNiveau.createLayer("Cave_Caveau1_Fall",tileset);
-
-        const Cave_Caveau2_Ground = carteDuNiveau.createLayer("Cave_Caveau2_Ground",tileset);
-        const Cave_Caveau2_Wall = carteDuNiveau.createLayer("Cave_Caveau2_Wall",tileset);
-        const Cave_Caveau2_Fall = carteDuNiveau.createLayer("Cave_Caveau2_Fall",tileset);
-
-        const Cave_SortieTemple_Ground = carteDuNiveau.createLayer("Cave_SortieTemple_Ground",tileset);
-        const Cave_SortieTemple_Wall = carteDuNiveau.createLayer("Cave_SortieTemple_Wall",tileset);
-        const Cave_SortieTemple_Fall = carteDuNiveau.createLayer("Cave_SortieTemple_Fall",tileset);
-
-        const Cave_Propulsa_FallFSecond = carteDuNiveau.createLayer("Cave_Propulsa_FallFSecond",tileset);
-        const Cave_Propulsa_FallBrown = carteDuNiveau.createLayer("Cave_Propulsa_FallBrown",tileset);
-        const Cave_Propulsa_FallDarkBrown = carteDuNiveau.createLayer("Cave_Propulsa_FallDarkBrown",tileset);
-        const Cave_Propulsa_FallFirst = carteDuNiveau.createLayer("Cave_Propulsa_FallFirst",tileset);
-        const Cave_Propulsa_Ground = carteDuNiveau.createLayer("Cave_Propulsa_Ground",tileset);
-        const Cave_Propulsa_Wall = carteDuNiveau.createLayer("Cave_Propulsa_Wall",tileset);
-        const Cave_Propulsa_Fall = carteDuNiveau.createLayer("Cave_Propulsa_Fall",tileset);
-        const Cave_Propulsa_Donjon = carteDuNiveau.createLayer("Cave_Propulsa_Donjon",tileset);
-
-        const Cave_Secret3_Ground = carteDuNiveau.createLayer("Cave_Secret3_Ground",tileset);
-        const Cave_Secret3_Wall = carteDuNiveau.createLayer("Cave_Secret3_Wall",tileset);
-        const Cave_Secret3_Fall = carteDuNiveau.createLayer("Cave_Secret3_Fall",tileset);
-
-        const Cave_Secret2_Ground = carteDuNiveau.createLayer("Cave_Secret2_Ground",tileset);
-        const Cave_Secret2_Wall = carteDuNiveau.createLayer("Cave_Secret2_Wall",tileset);
-        const Cave_Secret2_Fall = carteDuNiveau.createLayer("Cave_Secret2_Fall",tileset);
-
-        */
         // EXTERIEUR
         
         const Ext_BlackFall = carteDuNiveau.createLayer("Ext_BlackFall",tileset);
@@ -83,49 +52,39 @@ export class Outdoor extends Phaser.Scene{
         const Ext_Ground = carteDuNiveau.createLayer("Ext_Ground",tileset);
         const Ext_Wall_Back_Other = carteDuNiveau.createLayer("Ext_Wall_Back_Other",tileset);
         const Ext_Wall_Back = carteDuNiveau.createLayer("Ext_Wall_Back",tileset);
-        const Donjon2 = carteDuNiveau.createLayer("Donjon 2",tileset);
-        const Donjon = carteDuNiveau.createLayer("Donjon",tileset);
+        const Lueur_Cave = carteDuNiveau.createLayer("Lueur_Cave",tileset);
+        const Donjon_Back = carteDuNiveau.createLayer("Donjon_Back",tileset);
 
         // Chargement du joueur...
         if (this.entrance == "mainCave"){
             this.player = this.physics.add.sprite(2313, 2724, 'perso').setScale(1);
-            this.player.direction = {x:-1,y:0};
         }
         else if (this.entrance == "mainCave2"){
             this.player = this.physics.add.sprite(2825, 3478, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "caveau1"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
+            this.player = this.physics.add.sprite(717, 4750, 'perso').setScale(1);
         }
         else if (this.entrance == "caveau2"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
+            this.player = this.physics.add.sprite(665, 2088, 'perso').setScale(1);
         }
         else if (this.entrance == "secret1"){
             this.player = this.physics.add.sprite(1650, 3250, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "secret2"){
             this.player = this.physics.add.sprite(1922, 3791, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "secret3"){
             this.player = this.physics.add.sprite(1944, 4512, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
         }
         else if (this.entrance == "propulsaEnter"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
+            this.player = this.physics.add.sprite(2361, 2055, 'perso').setScale(1);
         }
         else if (this.entrance == "propulsaExit"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
+            this.player = this.physics.add.sprite(2850, 1660, 'perso').setScale(1);
         }
         else if (this.entrance == "temple"){
-            this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
-            this.player.direction = {x:0,y:-1};
+            this.player = this.physics.add.sprite(3007, 3883, 'perso').setScale(1);
         }
 
         this.playerState.isFalling = false;
@@ -133,11 +92,17 @@ export class Outdoor extends Phaser.Scene{
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
 
+        if (this.first){
+            this.first = false;
+            this.rect2 = this.add.rectangle(2210,2726,50,50);
+            this.physics.add.existing(this.rect2);
+        }
+        
         var rect = this.add.rectangle(this.player.x,this.player.y,35,48);
         this.extraCollide = this.physics.add.existing(rect);
         this.extraCollide.alpha = 0;
 
-
+        const Donjon_Front = carteDuNiveau.createLayer("Donjon_Front",tileset);
         const Ext_Wall_Front_Other = carteDuNiveau.createLayer("Ext_Wall_Front_Other",tileset);
         const Ext_Wall_Front = carteDuNiveau.createLayer("Ext_Wall_Front",tileset);
 
@@ -224,7 +189,7 @@ export class Outdoor extends Phaser.Scene{
         const Ext_FallOverLap = carteDuNiveau.createLayer("Ext_FallOverLap",tileset);
         Ext_FallOverLap.setCollisionByProperty({ fall: true },true);
         Ext_FallOverLap.alpha = 0;
-        this.physics.add.collider(this.extraCollide, Ext_FallOverLap,this.playerFalling,null,this);
+        //this.physics.add.collider(this.extraCollide, Ext_FallOverLap,this.playerFalling,null,this);
         
         
 
@@ -287,7 +252,7 @@ export class Outdoor extends Phaser.Scene{
 			})
         }
         //SECOND MAIN CAVE
-        else if (this.canOut && (this.player.body.position.x >= 2784 && this.player.body.position.x <= 2865 && this.player.body.position.y <= 3420 )){
+        else if (this.canOut && (this.player.body.position.x >= 2784 && this.player.body.position.x <= 2865 && this.player.body.position.y <= 3420 && this.player.body.position.y >= 3400 )){
             
             this.canOut = false;
             this.cameras.main.fadeOut(400, 35, 22, 21);
@@ -326,7 +291,7 @@ export class Outdoor extends Phaser.Scene{
 			})
         }
         //SECRET 3
-        else if (this.canOut && (this.player.body.position.x <= 1969  && this.player.body.position.x >= 1920 && this.player.body.position.y <= 4490 && this.player.body.position.y >= 4470 )){
+        else if (this.canOut && (this.player.body.position.x <= 1969  && this.player.body.position.x >= 1920 && this.player.body.position.y <= 4470 && this.player.body.position.y >= 4470 )){
             
             this.canOut = false;
             this.cameras.main.fadeOut(400, 35, 22, 21);
@@ -338,6 +303,72 @@ export class Outdoor extends Phaser.Scene{
 					this.scene.start('Secret3', {entrance: "outdoor", playerState : this.playerState});
 			})
         }
+        //PROPULSA CAVE ENTER
+        else if (this.canOut && (this.player.body.position.x <= 2385  && this.player.body.position.x >= 2336 && this.player.body.position.y <= 2005 && this.player.body.position.y >= 1990 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('CavePropulsa', {entrance: "enter", playerState : this.playerState});
+			})
+        }
+        //PROPULSA CAVE EXIT
+        else if (this.canOut && (this.player.body.position.x <= 2895  && this.player.body.position.x >= 2875 && this.player.body.position.y <= 1691 && this.player.body.position.y >= 1637 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('CavePropulsa', {entrance: "exit", playerState : this.playerState});
+			})
+        }
+        //SORTIE TEMPLE
+        else if (this.canOut && (this.player.body.position.x <= 3055  && this.player.body.position.x >= 3035 && this.player.body.position.y <= 3901 && this.player.body.position.y >= 3844 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('SortieTemple', {entrance: "outdoor", playerState : this.playerState});
+			})
+        }
+        //CAVEAU 1
+        else if (this.canOut && (this.player.body.position.x <= 700  && this.player.body.position.x >= 680 && this.player.body.position.y <= 4767 && this.player.body.position.y >= 4704 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('Caveau1', {entrance: "outdoor", playerState : this.playerState});
+			})
+        }
+        //CAVEAU 2
+        else if (this.canOut && (this.player.body.position.x <= 630  && this.player.body.position.x >= 610 && this.player.body.position.y <= 2109 && this.player.body.position.y >= 2052 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+			this.time.delayedCall(500, () => {
+					this.scene.start('Caveau2', {entrance: "outdoor", playerState : this.playerState});
+			})
+        }
+        
 
         // - MOVEMENT 
         if(this.playerState.canMove == true){
@@ -348,7 +379,7 @@ export class Outdoor extends Phaser.Scene{
         
         if (this.keySpace.isDown){
 
-            this.cameras.main.fadeOut(2000,255,254,170);
+            this.rect2.destroy();
           
         }
         

@@ -19,7 +19,7 @@ export class MainCave extends Phaser.Scene{
 			this.cameras.main.fadeIn(500, 35, 22, 21);
         }
 		else {
-			this.cameras.main.fadeIn(5000, 35, 22, 21);
+			this.cameras.main.fadeIn(2000, 35, 22, 21);
         }
         this.canOut = true;
     }
@@ -65,9 +65,9 @@ export class MainCave extends Phaser.Scene{
 
                 canMove : true,
 
-                unlockSortieTemple : true, 
+                unlockSortieTemple : false, 
                 unlockMainCave : false,
-                unlockPropulsa : true,
+                unlockPropulsa : false,
                 unlockSecret1 : false,
                 unlockSecret2 : false,
                 unlockSecret3 : false,
@@ -76,7 +76,30 @@ export class MainCave extends Phaser.Scene{
                 getSword : false,
                 getCape : false,
                 getBracelet : false,
-                getBoots : false
+                getBoots : false,
+
+                getCoffrePilleur1 : false,
+                getCoffrePilleur2 : false,
+                getCoffrePilleur3 : false,
+                getCoffreVide0 : false,
+                getCoffreVide1 : false,
+                getCoffreVide2 : false,
+                getCoffreVide3 : false,
+                getCoffreTemple1 : false,
+                getCoffreTemple2 : false,
+                getCoffreTemple3 : false,
+                getCoffreTemple4 : false,
+                getCoffreTemple5 : false,
+                getCoffreFinal1 : false,
+                getCoffreFinal2 : false,
+                getCoffreFinal3 : false,
+                getCoffreTombeau1_1 : false,
+                getCoffreTombeau1_2 : false,
+                getCoffreTombeau2_1 : false,
+                getCoffreTombeau2_2 : false,
+                getCoffreSecret1 : false,
+                getCoffreSecret2 : false,
+                getCoffreSecret3 : false,
             }
         }
         

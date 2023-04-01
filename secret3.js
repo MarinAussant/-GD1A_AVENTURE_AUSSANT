@@ -96,7 +96,6 @@ export class Secret3 extends Phaser.Scene{
     
     
     update(){
-        console.log(this.player.body.position);
 
         // - TRIGGERS
 
