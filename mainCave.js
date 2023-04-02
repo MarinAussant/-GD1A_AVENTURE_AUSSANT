@@ -8,6 +8,7 @@ export class MainCave extends Phaser.Scene{
         this.cursors;
         this.canOut = true;
         this.playerState; 
+        this.firstLoad = true;
 
     }
 
