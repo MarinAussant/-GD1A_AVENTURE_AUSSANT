@@ -6,7 +6,7 @@ export class Outdoor extends Phaser.Scene{
         this.cursors;
         this.canOut = true;
         this.player;
-        this.first = true;
+        
     }
 
     init(data)
@@ -23,8 +23,10 @@ export class Outdoor extends Phaser.Scene{
         this.load.spritesheet('perso','assets/images/perso.png',
         { frameWidth: 32, frameHeight: 48 });
         this.load.image('ennemi',"assets/images/ennemi.png");
+        this.load.image('gold',"assets/images/gold.png");
 
-        this.load.image('rect',"assets/images/rect.png")
+        this.load.image('coffreDevant',"assets/images/frontChest.png");
+        this.load.image('coffreCote',"assets/images/sideChest.png");
 
         //Load Tiles + TileSet
         this.load.image("Phaser_tuilesdejeu","assets/images/tileset.png");
@@ -54,6 +56,8 @@ export class Outdoor extends Phaser.Scene{
         const Ext_Wall_Back = carteDuNiveau.createLayer("Ext_Wall_Back",tileset);
         const Lueur_Cave = carteDuNiveau.createLayer("Lueur_Cave",tileset);
         const Donjon_Back = carteDuNiveau.createLayer("Donjon_Back",tileset);
+        
+        this.coffres = this.physics.add.group({ allowGravity: false,immovable : true});
 
         // Chargement du joueur...
         if (this.entrance == "mainCave"){
@@ -92,11 +96,20 @@ export class Outdoor extends Phaser.Scene{
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
 
-        if (this.first){
-            this.first = false;
-            this.rect2 = this.add.rectangle(2210,2726,50,50);
-            this.physics.add.existing(this.rect2);
-        }
+        // - ADD COFFRES
+
+        this.physics.add.collider(this.player,this.coffres);
+
+        this.coffres.create(2144+32,2912+16,"coffreDevant");
+        this.coffres.create(1120+16,4576+32,"coffreCote");
+        this.coffres.create(2592+16,3712+32,"coffreCote");
+
+        this.coffres.children.each(function (coffre) {
+
+            
+
+        })
+
         
         var rect = this.add.rectangle(this.player.x,this.player.y,35,48);
         this.extraCollide = this.physics.add.existing(rect);
@@ -200,7 +213,7 @@ export class Outdoor extends Phaser.Scene{
         // CAMERA
         this.cameras.main.setSize(1920, 1080);
         this.cameras.main.startFollow(this.player);
-        this.cameras.main.setDeadzone(20,20);
+        this.cameras.main.setDeadzone(40,40);
         this.cameras.main.setBounds(0,0,4960,6400);
         this.cameras.main.setZoom(2);
 
@@ -229,12 +242,25 @@ export class Outdoor extends Phaser.Scene{
     
     
     update(){
-        console.log(this.player.body.position);
+        //console.log(this.player.body.position);
 
         // - SUIVI DE EXTRACOLLIDE
         
         this.physics.moveTo(this.extraCollide,this.player.x,this.player.y+25,PLAYER_SPEED);
 
+        // - ATTAQUE
+
+        if (this.playerState.getSword){
+            this.keySpace.on('down',() => {
+                var circ = this.add.circle(this.player.x,this.player.y,50,50);
+                //circ.alpha = 0;
+                var attackCollision = this.physics.add.existing(circ);
+                this.time.delayedCall(500, () => {
+                    //circ.destroy();
+                    attackCollision.destroy();
+                })
+            })
+        }
 
         // TRIGGERS
 
@@ -284,7 +310,7 @@ export class Outdoor extends Phaser.Scene{
             this.cameras.main.fadeOut(400, 35, 22, 21);
             this.playerState.canMove = false;
             this.player.setVelocityX(this.player.body.velocity.x/5);
-            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            this.player.setVelocityY(this.player.body.velocity.y/5);
             
 			this.time.delayedCall(500, () => {
 					this.scene.start('Secret2', {entrance: "outdoor", playerState : this.playerState});
@@ -375,13 +401,6 @@ export class Outdoor extends Phaser.Scene{
             this.playerMovement();
         }
         
-
-        
-        if (this.keySpace.isDown){
-
-            this.rect2.destroy();
-          
-        }
         
     }
 
@@ -477,10 +496,18 @@ export class Outdoor extends Phaser.Scene{
             })
             this.time.delayedCall(1000, () => {
                 this.scene.start('Outdoor', {entrance: this.entrance, playerState : this.playerState});
-        })
+            })
         }
 
         this.playerState.isFalling = true;
+    }
+
+    dropGold(x,y,nb){
+        for (let index = 0; index < nb; index++) {
+            this.time.delayedCall(100, () => {
+                this.physics.add.image(Math.floor((Math.random()*10)-5) + x, Math.floor((Math.random()*10)-5) + x,"gold");
+            })   
+        }
     }
 
 }
