@@ -95,14 +95,25 @@ export class Outdoor extends Phaser.Scene{
         this.playerState.canMove = true;
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
+        if(this.playerState.getSword) {
+            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,20));
+            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,20,75));
+            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,75));
+            this.player.zoneAttackUpDown.body.enable = false;
+            this.player.zoneAttackGaucheDroite.body.enable = false;
+            this.player.zoneAttackDiag.body.enable = false;
+        }
 
         // - ADD COFFRES
 
         this.physics.add.collider(this.player,this.coffres);
 
-        this.coffres.create(2144+32,2912+16,"coffreDevant");
-        this.coffres.create(1120+16,4576+32,"coffreCote");
-        this.coffres.create(2592+16,3712+32,"coffreCote");
+        if (!this.playerState.getCoffrePilleur1) this.coffres.create(2144+32,2912+16,"coffreDevant");
+        if (!this.playerState.getCoffrePilleur2) this.coffres.create(1120+16,4576+32,"coffreCote");
+        if (!this.playerState.getCoffrePilleur3) this.coffres.create(2592+16,3712+32,"coffreCote");
+        
+        
+        
 
         this.coffres.children.each(function (coffre) {
 
@@ -252,13 +263,7 @@ export class Outdoor extends Phaser.Scene{
 
         if (this.playerState.getSword){
             this.keySpace.on('down',() => {
-                var circ = this.add.circle(this.player.x,this.player.y,50,50);
-                //circ.alpha = 0;
-                var attackCollision = this.physics.add.existing(circ);
-                this.time.delayedCall(500, () => {
-                    //circ.destroy();
-                    attackCollision.destroy();
-                })
+                this.attack();
             })
         }
 
@@ -400,7 +405,7 @@ export class Outdoor extends Phaser.Scene{
         if(this.playerState.canMove == true){
             this.playerMovement();
         }
-        
+        console.log(this.player.direction);
         
     }
 
@@ -479,6 +484,24 @@ export class Outdoor extends Phaser.Scene{
             this.player.setVelocityY(0); 
             this.player.anims.play('turn'); 
         }
+    }
+
+    attack(){
+        if (this.player.direction.x == 0 && this.player.direction.y == 1){
+            this.player.zoneAttackUpDown.body.position = {x :this.player.x - 38, y: (this.player.y - 32) + this.player.body.velocity.y/8};
+            this.player.zoneAttackUpDown.enable = true;
+            this.time.delayedCall(200, () => {
+                this.player.zoneAttackUpDown.enable = false;
+            })
+        }
+        else if (this.player.direction.x == 0 && this.player.direction.y == -1){
+            this.player.zoneAttackUpDown.body.position = {x :this.player.x - 38, y: (this.player.y + 32) - this.player.body.velocity.y/8};
+            this.player.zoneAttackUpDown.enable = true;
+            this.time.delayedCall(200, () => {
+                this.player.zoneAttackUpDown.enable = false;
+            })
+        }
+        
     }
 
     playerFalling(){
