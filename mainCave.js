@@ -61,8 +61,14 @@ export class MainCave extends Phaser.Scene{
             this.player = this.physics.add.sprite(2200, 3350, 'perso').setScale(1);
             this.player.direction = {x:0,y:0};
             this.playerState = {
+                gold : 0,
+
                 isMoving : false,
                 isFalling : false,
+                isAttacking : false,
+                isPropulsing : false,
+                isCaping : false,
+                isColliding : false,
 
                 canMove : true,
 
@@ -75,9 +81,9 @@ export class MainCave extends Phaser.Scene{
                 unlockCaveau2 : true,
 
                 getSword : true,
-                getCape : false,
+                getCape : true,
                 getBracelet : false,
-                getBoots : false,
+                getBoots : true,
 
                 getCoffrePilleur1 : false,
                 getCoffrePilleur2 : false,

@@ -6,6 +6,7 @@ export class Outdoor extends Phaser.Scene{
         this.cursors;
         this.canOut = true;
         this.player;
+        this.click;
         
     }
 
@@ -57,7 +58,12 @@ export class Outdoor extends Phaser.Scene{
         const Lueur_Cave = carteDuNiveau.createLayer("Lueur_Cave",tileset);
         const Donjon_Back = carteDuNiveau.createLayer("Donjon_Back",tileset);
         
-        this.coffres = this.physics.add.group({ allowGravity: false,immovable : true});
+        this.coffres = this.physics.add.group({allowGravity: false,immovable : true});
+        if (!this.playerState.getCoffrePilleur1) this.coffres.create(2144+32,2912+16,"coffreDevant");
+        if (!this.playerState.getCoffrePilleur2) this.coffres.create(1120+16,4576+32,"coffreCote");
+        if (!this.playerState.getCoffrePilleur3) this.coffres.create(2592+16,3712+32,"coffreCote");
+
+        this.golds = this.physics.add.group({allowGravity: false,immovable : true});
 
         // Chargement du joueur...
         if (this.entrance == "mainCave"){
@@ -93,34 +99,27 @@ export class Outdoor extends Phaser.Scene{
 
         this.playerState.isFalling = false;
         this.playerState.canMove = true;
+        this.playerState.isPropulsing = false;
         this.player.setSize(15,3).setOffset(8,45);
         this.player.setCollideWorldBounds(true);
         if(this.playerState.getSword) {
             this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,20));
             this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,20,75));
-            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,75));
+            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,35,35));
             this.player.zoneAttackUpDown.body.enable = false;
             this.player.zoneAttackGaucheDroite.body.enable = false;
             this.player.zoneAttackDiag.body.enable = false;
         }
 
-        // - ADD COFFRES
+        // - ADD ... choses.... cool ? 
 
         this.physics.add.collider(this.player,this.coffres);
-
-        if (!this.playerState.getCoffrePilleur1) this.coffres.create(2144+32,2912+16,"coffreDevant");
-        if (!this.playerState.getCoffrePilleur2) this.coffres.create(1120+16,4576+32,"coffreCote");
-        if (!this.playerState.getCoffrePilleur3) this.coffres.create(2592+16,3712+32,"coffreCote");
-        
-        
+        this.physics.add.overlap(this.player,this.golds, this.getGold, null, this);
         
 
-        this.coffres.children.each(function (coffre) {
-
-            
-
-        })
-
+        this.physics.add.overlap(this.player.zoneAttackUpDown, this.coffres, this.lootCoffre,null,this);
+        this.physics.add.overlap(this.player.zoneAttackGaucheDroite, this.coffres, this.lootCoffre,null,this);
+        this.physics.add.overlap(this.player.zoneAttackDiag, this.coffres, this.lootCoffre,null,this);
         
         var rect = this.add.rectangle(this.player.x,this.player.y,35,48);
         this.extraCollide = this.physics.add.existing(rect);
@@ -203,10 +202,10 @@ export class Outdoor extends Phaser.Scene{
         const Ext_Exit = carteDuNiveau.createLayer("Ext_Exit",tileset);
 
         // COLLISIONS EXTERIEUR
-        const Ext_Collide = carteDuNiveau.createLayer("Ext_Collide",tileset);
-        Ext_Collide.setCollisionByProperty({ collide: true });
-        Ext_Collide.alpha = 0;
-        this.physics.add.collider(this.player, Ext_Collide);
+        this.Ext_Collide = carteDuNiveau.createLayer("Ext_Collide",tileset);
+        this.Ext_Collide.setCollisionByProperty({ collide: true });
+        this.Ext_Collide.alpha = 0;
+        this.physics.add.collider(this.player, this.Ext_Collide, this.collide, null, this);
         
 
         // OVERLAP FALLING EXTERIEUR
@@ -219,6 +218,12 @@ export class Outdoor extends Phaser.Scene{
 
         // CONTRÔLE CLAVIER
         this.cursors = this.input.keyboard.createCursorKeys();
+        this.input.on('pointerdown', () => this.click = true);
+        this.keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+        this.keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+        this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+        this.keySHIFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         // CAMERA
@@ -262,10 +267,37 @@ export class Outdoor extends Phaser.Scene{
         // - ATTAQUE
 
         if (this.playerState.getSword){
-            this.keySpace.on('down',() => {
-                this.attack();
-            })
+            if (this.click && 
+                !this.playerState.isAttacking && 
+                !this.playerState.isPropulsing && 
+                !this.playerState.isFalling){
+                    this.playerState.isAttacking = true;
+                    this.click = false;
+                    this.attack();
+                    this.time.delayedCall(500, () => {
+                        this.playerState.isAttacking = false;
+                    })
+
+            };
         }
+
+        if (this.playerState.getBoots){
+            console.log(this.playerState.isColliding);
+            if (Phaser.Input.Keyboard.JustDown(this.keySHIFT) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
+                this.playerState.canMove = false;
+                this.playerState.isPropulsing = true;
+                this.propulsing();
+            }
+
+            if (this.playerState.isPropulsing && this.playerState.isColliding){
+                this.playerState.isPropulsing = false;
+                this.playerState.isColliding = false;
+                this.player.setVelocityX(0);
+                this.player.setVelocityY(0); 
+                this.playerState.canMove = true;
+            }
+        }
+
 
         // TRIGGERS
 
@@ -405,7 +437,6 @@ export class Outdoor extends Phaser.Scene{
         if(this.playerState.canMove == true){
             this.playerMovement();
         }
-        console.log(this.player.direction);
         
     }
 
@@ -488,20 +519,126 @@ export class Outdoor extends Phaser.Scene{
 
     attack(){
         if (this.player.direction.x == 0 && this.player.direction.y == 1){
-            this.player.zoneAttackUpDown.body.position = {x :this.player.x - 38, y: (this.player.y - 32) + this.player.body.velocity.y/8};
-            this.player.zoneAttackUpDown.enable = true;
+            this.player.zoneAttackUpDown.x = this.player.x;
+            this.player.zoneAttackUpDown.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackUpDown.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0);
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
             this.time.delayedCall(200, () => {
-                this.player.zoneAttackUpDown.enable = false;
+                this.playerState.canMove = true;
+                this.player.zoneAttackUpDown.body.enable = false;
             })
         }
         else if (this.player.direction.x == 0 && this.player.direction.y == -1){
-            this.player.zoneAttackUpDown.body.position = {x :this.player.x - 38, y: (this.player.y + 32) - this.player.body.velocity.y/8};
-            this.player.zoneAttackUpDown.enable = true;
+            this.player.zoneAttackUpDown.x = this.player.x;
+            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/8;
+            this.player.zoneAttackUpDown.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
             this.time.delayedCall(200, () => {
-                this.player.zoneAttackUpDown.enable = false;
+                this.playerState.canMove = true;
+                this.player.zoneAttackUpDown.body.enable = false;
             })
         }
-        
+        else if (this.player.direction.x == 1 && this.player.direction.y == 0){
+            this.player.zoneAttackGaucheDroite.x = (this.player.x + 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackGaucheDroite.y = this.player.y;
+            this.player.zoneAttackGaucheDroite.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.time.delayedCall(200, () => {
+                this.playerState.canMove = true;
+                this.player.zoneAttackGaucheDroite.body.enable = false;
+            })
+        }
+        else if (this.player.direction.x == -1 && this.player.direction.y == 0){
+            this.player.zoneAttackGaucheDroite.x = (this.player.x - 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackGaucheDroite.y = this.player.y;
+            this.player.zoneAttackGaucheDroite.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.time.delayedCall(200, () => {
+                this.playerState.canMove = true;
+                this.player.zoneAttackGaucheDroite.body.enable = false;
+            })
+        }
+        else if (this.player.direction.x == -1 && this.player.direction.y == 1){
+            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.time.delayedCall(200, () => {
+                this.playerState.canMove = true;
+                this.player.zoneAttackDiag.body.enable = false;
+            })
+        }
+        else if (this.player.direction.x == -1 && this.player.direction.y == -1){
+            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.time.delayedCall(200, () => {
+                this.playerState.canMove = true;
+                this.player.zoneAttackDiag.body.enable = false;
+            })
+        }
+        else if (this.player.direction.x == 1 && this.player.direction.y == 1){
+            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.time.delayedCall(200, () => {
+                this.playerState.canMove = true;
+                this.player.zoneAttackDiag.body.enable = false;
+            })
+        }
+        else if (this.player.direction.x == 1 && this.player.direction.y == -1){
+            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.body.enable = true;
+            this.playerState.canMove = false;
+            this.player.x += this.player.body.velocity.x/12;
+            this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.time.delayedCall(200, () => {
+                this.playerState.canMove = true;
+                this.player.zoneAttackDiag.body.enable = false;
+            })
+        }
+    }
+
+    propulsing(){
+        if (this.player.direction.x != 0){
+            this.player.setVelocityX((PLAYER_SPEED*2) * this.player.direction.x);
+        }
+        else {
+            this.player.setVelocityY((PLAYER_SPEED*2) * -this.player.direction.y);
+        }
     }
 
     playerFalling(){
@@ -525,12 +662,34 @@ export class Outdoor extends Phaser.Scene{
         this.playerState.isFalling = true;
     }
 
+    lootCoffre(zone, coffre){
+        coffre.body.enable = false;
+        coffre.alpha = 0;
+        this.dropGold(coffre.x,coffre.y,Math.floor((Math.random()*5)+10));
+    }
+
     dropGold(x,y,nb){
-        for (let index = 0; index < nb; index++) {
-            this.time.delayedCall(100, () => {
-                this.physics.add.image(Math.floor((Math.random()*10)-5) + x, Math.floor((Math.random()*10)-5) + x,"gold");
-            })   
-        }
+        this.time.addEvent({        
+            delay : nb,
+            callback : () => {
+                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.02);
+                //this.physics.add.image(Math.floor((Math.random()*30)-5) + x, Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.02);
+            },
+            repeat : nb
+        })
+    }
+
+    getGold(player, gold){
+       
+        this.playerState.gold += 1;
+        gold.body.enable = false;
+        gold.alpha = 0;
+            
+    }
+
+    collide(){
+        if (this.playerState.isPropulsing)this.playerState.isColliding = true;
+        else this.playerState.isColliding = false;
     }
 
 }
