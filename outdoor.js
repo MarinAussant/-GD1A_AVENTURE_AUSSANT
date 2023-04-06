@@ -57,11 +57,66 @@ export class Outdoor extends Phaser.Scene{
         const Ext_Wall_Back = carteDuNiveau.createLayer("Ext_Wall_Back",tileset);
         const Lueur_Cave = carteDuNiveau.createLayer("Lueur_Cave",tileset);
         const Donjon_Back = carteDuNiveau.createLayer("Donjon_Back",tileset);
+
+        // SI UNLOCK SECONDE MAIN CAVE
+        if (!this.playerState.unlockMainCave){
+            this.Ext_WallClosePorte_MainCave = carteDuNiveau.createLayer("Ext_WallClosePorte_MainCave",tileset);
+            this.Ext_ClosePorte_MainCave = carteDuNiveau.createLayer("Ext_ClosePorte_MainCave",tileset);
+            this.Ext_ClosePorte_MainCave.setCollisionByProperty({ collide: true });
+        }
+        // SI UNLOCK SORTIE TEMPLE
+        if (!this.playerState.unlockSortieTemple){
+            this.Ext_WallClosePorte_SortieTemple = carteDuNiveau.createLayer("Ext_WallClosePorte_SortieTemple",tileset);
+            this.Ext_ClosePorte_SortieTemple = carteDuNiveau.createLayer("Ext_ClosePorte_SortieTemple",tileset);
+            this.Ext_ClosePorte_SortieTemple.setCollisionByProperty({ collide: true });
+        }
+        // SI UNLOCK PROPULSA PORTE
+        if (!this.playerState.unlockPropulsa){
+            this.Ext_WallClosePorte_Propulsa = carteDuNiveau.createLayer("Ext_WallClosePorte_Propulsa",tileset);
+            this.Ext_ClosePorte_Propulsa = carteDuNiveau.createLayer("Ext_ClosePorte_Propulsa",tileset);
+            this.Ext_ClosePorte_Propulsa.setCollisionByProperty({ collide: true });
+        }
+        // SI UNLOCK SECRET 1
+        if (!this.playerState.unlockSecret1){
+            this.Ext_WallClosePorte_Secret1 = carteDuNiveau.createLayer("Ext_WallClosePorte_Secret1",tileset);
+            this.Ext_ClosePorte_Secret1 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret1",tileset);
+            this.Ext_ClosePorte_Secret1.setCollisionByProperty({ collide: true });
+        }
+        // SI UNLOCK SECRET 2
+        if (!this.playerState.unlockSecret2){
+            this.Ext_WallClosePorte_Secret2 = carteDuNiveau.createLayer("Ext_WallClosePorte_Secret2",tileset);
+            this.Ext_ClosePorte_Secret2 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret2",tileset);
+            this.Ext_ClosePorte_Secret2.setCollisionByProperty({ collide: true });
+
+        }
+        // SI UNLOCK SECRET 3
+        if (!this.playerState.unlockSecret3){
+            this.Ext_WallClosePorte_Secret3 = carteDuNiveau.createLayer("Ext_WallClosePorte_Secret3",tileset);
+            this.Ext_ClosePorte_Secret3 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret3",tileset);
+            this.Ext_ClosePorte_Secret3.setCollisionByProperty({ collide: true });
+        }
+        // SI UNLOCK CAVEAU 2
+        if (!this.playerState.unlockCaveau2){
+            this.Ext_WallClosePorte_Caveau2 = carteDuNiveau.createLayer("Ext_WallClosePorte_Caveau2",tileset);
+            this.Ext_ClosePorte_Caveau2 = carteDuNiveau.createLayer("Ext_ClosePorte_Caveau2",tileset);
+            this.Ext_ClosePorte_Caveau2.setCollisionByProperty({ collide: true });
+        }
         
         this.coffres = this.physics.add.group({allowGravity: false,immovable : true});
-        if (!this.playerState.getCoffrePilleur1) this.coffres.create(2144+32,2912+16,"coffreDevant");
-        if (!this.playerState.getCoffrePilleur2) this.coffres.create(1120+16,4576+32,"coffreCote");
-        if (!this.playerState.getCoffrePilleur3) this.coffres.create(2592+16,3712+32,"coffreCote");
+
+        this.coffres.create(2144+32,2912+16,"coffreDevant");
+        this.coffres.create(1120+16,4576+32,"coffreCote");
+        this.coffres.create(2592+16,3712+32,"coffreCote");
+        this.coffres.create(2880+16,2304+32,"coffreCote");
+        this.coffres.create(1568+16,1696+32,"coffreCote");
+        this.coffres.create(1024+16,2496+32,"coffreCote");
+        this.coffres.create(1024+16,2496+32,"coffreCote");
+        this.coffres.create(1792+16,2112+32,"coffreCote");
+        this.coffres.create(3072+16,4928+32,"coffreCote");
+        this.coffres.create(1120+32,224+16,"coffreDevant");
+        this.coffres.create(1568+32,224+16,"coffreDevant");
+        this.coffres.create(1344+32,416+16,"coffreDevant");
+
 
         this.golds = this.physics.add.group({allowGravity: false,immovable : true});
 
@@ -113,7 +168,7 @@ export class Outdoor extends Phaser.Scene{
 
         // - ADD ... choses.... cool ? 
 
-        this.physics.add.collider(this.player,this.coffres);
+        this.physics.add.collider(this.player,this.coffres,this.collide, null, this);
         this.physics.add.overlap(this.player,this.golds, this.getGold, null, this);
         
 
@@ -125,79 +180,73 @@ export class Outdoor extends Phaser.Scene{
         this.extraCollide = this.physics.add.existing(rect);
         this.extraCollide.alpha = 0;
 
+        this.Ext_WallOpenPorte_MainCave = carteDuNiveau.createLayer("Ext_WallOpenPorte_MainCave",tileset);
+        this.Ext_OpenPorte_MainCave = carteDuNiveau.createLayer("Ext_OpenPorte_MainCave",tileset);
+
+        this.Ext_WallOpenPorte_SortieTemple = carteDuNiveau.createLayer("Ext_WallOpenPorte_SortieTemple",tileset);
+        this.Ext_OpenPorte_SortieTemple = carteDuNiveau.createLayer("Ext_OpenPorte_SortieTemple",tileset);
+
+        this.Ext_WallOpenPorte_Propulsa = carteDuNiveau.createLayer("Ext_WallOpenPorte_Propulsa",tileset);
+        this.Ext_OpenPorte_Propulsa = carteDuNiveau.createLayer("Ext_OpenPorte_Propulsa",tileset);
+
+        this.Ext_WallOpenPorte_Secret1 = carteDuNiveau.createLayer("Ext_WallOpenPorte_Secret1",tileset);
+        this.Ext_OpenPorte_Secret1 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret1",tileset);
+
+        this.Ext_WallOpenPorte_Secret2 = carteDuNiveau.createLayer("Ext_WallOpenPorte_Secret2",tileset);
+        this.Ext_OpenPorte_Secret2 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret2",tileset);
+
+        this.Ext_WallOpenPorte_Secret3 = carteDuNiveau.createLayer("Ext_WallOpenPorte_Secret3",tileset);
+        this.Ext_OpenPorte_Secret3 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret3",tileset);
+
+        this.Ext_WallOpenPorte_Caveau2 = carteDuNiveau.createLayer("Ext_WallOpenPorte_Caveau2",tileset);
+        this.Ext_OpenPorte_Caveau2 = carteDuNiveau.createLayer("Ext_OpenPorte_Caveau2",tileset);
+
+        // SI UNLOCK SECONDE MAIN CAVE
+        if (!this.playerState.unlockMainCave){
+            this.collideMainCave = this.physics.add.collider(this.player, this.Ext_ClosePorte_MainCave,this.collide, null, this);
+            this.Ext_WallOpenPorte_MainCave.alpha = 0;
+            this.Ext_OpenPorte_MainCave.alpha = 0;
+        }
+        // SI UNLOCK SORTIE TEMPLE
+        if (!this.playerState.unlockSortieTemple){
+            this.collideSortieTemple = this.physics.add.collider(this.player, this.Ext_ClosePorte_SortieTemple,this.collide, null, this);
+            this.Ext_WallOpenPorte_SortieTemple.alpha = 0;
+            this.Ext_OpenPorte_SortieTemple.alpha = 0;
+        }
+        // SI UNLOCK PROPULSA PORTE
+        if (!this.playerState.unlockPropulsa){
+            this.collidePropulsa = this.physics.add.collider(this.player, this.Ext_ClosePorte_Propulsa,this.collide, null, this);
+            this.Ext_WallOpenPorte_Propulsa.alpha = 0;
+            this.Ext_OpenPorte_Propulsa.alpha = 0;
+        }
+        // SI UNLOCK SECRET 1
+        if (!this.playerState.unlockSecret1){
+            this.collideSecret1 = this.physics.add.collider(this.player, this.Ext_ClosePorte_Secret1,this.collide, null, this);
+            this.Ext_WallOpenPorte_Secret1.alpha = 0;
+            this.Ext_OpenPorte_Secret1.alpha = 0;
+        }
+        // SI UNLOCK SECRET 2
+        if (!this.playerState.unlockSecret2){
+            this.collideSecret2 = this.physics.add.collider(this.player, this.Ext_ClosePorte_Secret2,this.collide, null, this);
+            this.Ext_WallOpenPorte_Secret2.alpha = 0;
+            this.Ext_OpenPorte_Secret2.alpha = 0;
+        }
+        // SI UNLOCK SECRET 3
+        if (!this.playerState.unlockSecret3){
+            this.collideSecret3 = this.physics.add.collider(this.player, this.Ext_ClosePorte_Secret3,this.collide, null, this);
+            this.Ext_WallOpenPorte_Secret3.alpha = 0;
+            this.Ext_OpenPorte_Secret3.alpha = 0;
+        }
+        // SI UNLOCK CAVEAU 2
+        if (!this.playerState.unlockCaveau2){
+            this.collideCaveau2 = this.physics.add.collider(this.player, this.Ext_ClosePorte_Caveau2,this.collide, null, this);
+            this.Ext_WallOpenPorte_Caveau2.alpha = 0;
+            this.Ext_OpenPorte_Caveau2.alpha = 0;
+        }
+
         const Donjon_Front = carteDuNiveau.createLayer("Donjon_Front",tileset);
         const Ext_Wall_Front_Other = carteDuNiveau.createLayer("Ext_Wall_Front_Other",tileset);
         const Ext_Wall_Front = carteDuNiveau.createLayer("Ext_Wall_Front",tileset);
-
-        // SI UNLOCK SECONDE MAIN CAVE
-        if (this.playerState.unlockMainCave){
-            const Ext_OpenPorte_MainCave = carteDuNiveau.createLayer("Ext_OpenPorte_MainCave",tileset);
-        }
-        else {
-            const Ext_ClosePorte_MainCave = carteDuNiveau.createLayer("Ext_ClosePorte_MainCave",tileset);
-            Ext_ClosePorte_MainCave.setCollisionByProperty({ collide: true });
-            this.physics.add.collider(this.player, Ext_ClosePorte_MainCave);
-        }
-
-        // SI UNLOCK SORTIE TEMPLE
-        if (this.playerState.unlockSortieTemple){
-            const Ext_OpenPorte_SortieTemple = carteDuNiveau.createLayer("Ext_OpenPorte_SortieTemple",tileset);
-        }
-        else {
-            const Ext_ClosePorte_SortieTemple = carteDuNiveau.createLayer("Ext_ClosePorte_SortieTemple",tileset);
-            Ext_ClosePorte_SortieTemple.setCollisionByProperty({ collide: true });
-            this.physics.add.collider(this.player, Ext_ClosePorte_SortieTemple);
-        }
-
-        // SI UNLOCK PROPULSA PORTE
-        if (this.playerState.unlockPropulsa){
-            const Ext_OpenPorte_Propulsa = carteDuNiveau.createLayer("Ext_OpenPorte_Propulsa",tileset);
-        }
-        else {
-            const Ext_ClosePorte_Propulsa = carteDuNiveau.createLayer("Ext_ClosePorte_Propulsa",tileset);
-            Ext_ClosePorte_Propulsa.setCollisionByProperty({ collide: true });
-            this.physics.add.collider(this.player, Ext_ClosePorte_Propulsa);
-        }
-
-        // SI UNLOCK SECRET 1
-        if (this.playerState.unlockSecret1){
-            const Ext_OpenPorte_Secret1 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret1",tileset);
-        }
-        else {
-            const Ext_ClosePorte_Secret1 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret1",tileset);
-            Ext_ClosePorte_Secret1.setCollisionByProperty({ collide: true });
-            this.physics.add.collider(this.player, Ext_ClosePorte_Secret1);
-        }
-
-        // SI UNLOCK SECRET 2
-        if (this.playerState.unlockSecret2){
-            const Ext_OpenPorte_Secret2 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret2",tileset);
-        }
-        else {
-            const Ext_ClosePorte_Secret2 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret2",tileset);
-            Ext_ClosePorte_Secret2.setCollisionByProperty({ collide: true });
-            this.physics.add.collider(this.player, Ext_ClosePorte_Secret2);
-        }
-
-        // SI UNLOCK SECRET 3
-        if (this.playerState.unlockSecret3){
-            const Ext_OpenPorte_Secret3 = carteDuNiveau.createLayer("Ext_OpenPorte_Secret3",tileset);
-        }
-        else {
-            const Ext_ClosePorte_Secret3 = carteDuNiveau.createLayer("Ext_ClosePorte_Secret3",tileset);
-            Ext_ClosePorte_Secret3.setCollisionByProperty({ collide: true });
-            this.physics.add.collider(this.player, Ext_ClosePorte_Secret3);
-        }
-
-        // SI UNLOCK CAVEAU 2
-        if (this.playerState.unlockCaveau2){
-            const Ext_OpenPorte_Caveau2 = carteDuNiveau.createLayer("Ext_OpenPorte_Caveau2",tileset);
-        }
-        else {
-            const Ext_ClosePorte_Caveau2 = carteDuNiveau.createLayer("Ext_ClosePorte_Caveau2",tileset);
-            Ext_ClosePorte_Caveau2.setCollisionByProperty({ collide: true });
-            this.physics.add.collider(this.player, Ext_ClosePorte_Caveau2);
-        }
 
         const Ext_Exit = carteDuNiveau.createLayer("Ext_Exit",tileset);
 
@@ -219,6 +268,7 @@ export class Outdoor extends Phaser.Scene{
         // CONTRÔLE CLAVIER
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.on('pointerdown', () => this.click = true);
+        this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
         this.keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
         this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
@@ -258,7 +308,7 @@ export class Outdoor extends Phaser.Scene{
     
     
     update(){
-        //console.log(this.player.body.position);
+        console.log(this.player.body.position);
 
         // - SUIVI DE EXTRACOLLIDE
         
@@ -282,7 +332,6 @@ export class Outdoor extends Phaser.Scene{
         }
 
         if (this.playerState.getBoots){
-            console.log(this.playerState.isColliding);
             if (Phaser.Input.Keyboard.JustDown(this.keySHIFT) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
                 this.playerState.canMove = false;
                 this.playerState.isPropulsing = true;
@@ -297,7 +346,6 @@ export class Outdoor extends Phaser.Scene{
                 this.playerState.canMove = true;
             }
         }
-
 
         // TRIGGERS
 
@@ -354,7 +402,7 @@ export class Outdoor extends Phaser.Scene{
 			})
         }
         //SECRET 3
-        else if (this.canOut && (this.player.body.position.x <= 1969  && this.player.body.position.x >= 1920 && this.player.body.position.y <= 4470 && this.player.body.position.y >= 4470 )){
+        else if (this.canOut && (this.player.body.position.x <= 1969  && this.player.body.position.x >= 1920 && this.player.body.position.y <= 4470 && this.player.body.position.y >= 4450 )){
             
             this.canOut = false;
             this.cameras.main.fadeOut(400, 35, 22, 21);
@@ -431,12 +479,75 @@ export class Outdoor extends Phaser.Scene{
 					this.scene.start('Caveau2', {entrance: "outdoor", playerState : this.playerState});
 			})
         }
+
+        // TRIGGERS BRACELET
+        if (this.playerState.getBracelet && Phaser.Input.Keyboard.JustDown(this.keyA) && !this.playerState.isAttacking && !this.playerState.isPropulsing){
+
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.playerState.canMove = false;
+            this.cameras.main.fadeOut(300, 184, 231, 249);
+            this.time.delayedCall(300, () => {
+                this.cameras.main.fadeIn(1000, 184, 231, 249);
+                this.playerState.canMove = true;
+            })
+
+            if((this.playerState.unlockSecret3 == false) && this.player.body.position.x <= 2016  && this.player.body.position.x >= 1856 && this.player.body.position.y <= 4576 && this.player.body.position.y >= 4448 ){
+                this.playerState.unlockSecret3 = true;
+                this.Ext_OpenPorte_Secret3.alpha = 1;
+                this.Ext_WallOpenPorte_Secret3.alpha = 1;
+                this.Ext_ClosePorte_Secret3.alpha = 0;
+                this.Ext_WallClosePorte_Secret3.alpha = 0;
+                this.collideSecret3.active = false;
+            }
+            else if((this.playerState.unlockSecret2 == false) && this.player.body.position.x <= 1952  && this.player.body.position.x >= 1824 && this.player.body.position.y <= 3840 && this.player.body.position.y >= 3680 ){
+                this.playerState.unlockSecret2 = true;
+                this.Ext_OpenPorte_Secret2.alpha = 1;
+                this.Ext_WallOpenPorte_Secret2.alpha = 1;
+                this.Ext_ClosePorte_Secret2.alpha = 0;
+                this.Ext_WallClosePorte_Secret2.alpha = 0;
+                this.collideSecret2.active = false;
+            }
+            else if((this.playerState.unlockSecret1 == false) && this.player.body.position.x <= 1728  && this.player.body.position.x >= 1600 && this.player.body.position.y <= 3328 && this.player.body.position.y >= 3168 ){
+                this.playerState.unlockSecret1 = true;
+                this.Ext_OpenPorte_Secret1.alpha = 1;
+                this.Ext_WallOpenPorte_Secret1.alpha = 1;
+                this.Ext_ClosePorte_Secret1.alpha = 0;
+                this.Ext_WallClosePorte_Secret1.alpha = 0;
+                this.collideSecret1.active = false;
+            }
+            else if((this.playerState.unlockMainCave == false) && this.player.body.position.x <= 2880  && this.player.body.position.x >= 2720 && this.player.body.position.y <= 3552 && this.player.body.position.y >= 3424 ){
+                this.playerState.unlockMainCave = true;
+                this.Ext_OpenPorte_MainCave.alpha = 1;
+                this.Ext_WallOpenPorte_MainCave.alpha = 1;
+                this.Ext_ClosePorte_MainCave.alpha = 0;
+                this.Ext_WallClosePorte_MainCave.alpha = 0;
+                this.collideMainCave.active = false;
+            }
+            else if((this.playerState.unlockPropulsa == false) && this.player.body.position.x <= 2432  && this.player.body.position.x >= 2272 && this.player.body.position.y <= 2112 && this.player.body.position.y >= 1920 ){
+                this.playerState.unlockPropulsa = true;
+                this.Ext_OpenPorte_Propulsa.alpha = 1;
+                this.Ext_WallOpenPorte_Propulsa.alpha = 1;
+                this.Ext_ClosePorte_Propulsa.alpha = 0;
+                this.Ext_WallClosePorte_Propulsa.alpha = 0;
+                this.collidePropulsa.active = false;
+            }
+            else if((this.playerState.unlockCaveau2 == false) && this.player.body.position.x <= 690  && this.player.body.position.x >= 608 && this.player.body.position.y <= 2112 && this.player.body.position.y >= 1984 ){
+                this.playerState.unlockCaveau2 = true;
+                this.Ext_OpenPorte_Caveau2.alpha = 1;
+                this.Ext_WallOpenPorte_Caveau2.alpha = 1;
+                this.Ext_ClosePorte_Caveau2.alpha = 0;
+                this.Ext_WallClosePorte_Caveau2.alpha = 0;
+                this.collideCaveau2.active = false;
+            }
+        }
         
 
         // - MOVEMENT 
         if(this.playerState.canMove == true){
             this.playerMovement();
         }
+
         
     }
 
@@ -523,10 +634,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackUpDown.y = (this.player.y - 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0);
             this.player.x += this.player.body.velocity.x/12;
             this.player.y += this.player.body.velocity.y/12;
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0);
             this.time.delayedCall(200, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackUpDown.body.enable = false;
