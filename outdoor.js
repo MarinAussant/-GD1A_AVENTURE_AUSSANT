@@ -39,6 +39,7 @@ export class Outdoor extends Phaser.Scene{
 
         this.load.image('ennemi',"assets/images/ennemi.png");
         this.load.image('gold',"assets/images/gold.png");
+        this.load.image('shadow',"assets/images/shadow.png");
 
         this.load.image('coffreDevant',"assets/images/frontChest.png");
         this.load.image('coffreCote',"assets/images/sideChest.png");
@@ -118,21 +119,54 @@ export class Outdoor extends Phaser.Scene{
         
         this.coffres = this.physics.add.group({allowGravity: false,immovable : true});
 
-        this.coffres.create(2144+32,2912+16,"coffreDevant");
-        this.coffres.create(1120+16,4576+32,"coffreCote");
-        this.coffres.create(2592+16,3712+32,"coffreCote");
-        this.coffres.create(2880+16,2304+32,"coffreCote");
-        this.coffres.create(1568+16,1696+32,"coffreCote");
-        this.coffres.create(1024+16,2496+32,"coffreCote");
-        this.coffres.create(1024+16,2496+32,"coffreCote");
-        this.coffres.create(1792+16,2112+32,"coffreCote");
-        this.coffres.create(3072+16,4928+32,"coffreCote");
-        this.coffres.create(1120+32,224+16,"coffreDevant");
-        this.coffres.create(1568+32,224+16,"coffreDevant");
-        this.coffres.create(1344+32,416+16,"coffreDevant");
-
+        if (!this.playerState.getCoffrePilleur1){
+            this.coffrePilleur1 = this.physics.add.sprite(2144+32,2912+16,"coffreDevant");
+            this.coffres.add(this.coffrePilleur1);
+        }
+        if (!this.playerState.getCoffrePilleur2){
+            this.coffrePilleur2 = this.physics.add.sprite(1120+16,4576+32,"coffreCote");
+            this.coffres.add(this.coffrePilleur2);
+        }
+        if (!this.playerState.getCoffrePilleur3){
+            this.coffrePilleur3 = this.physics.add.sprite(2592+16,3712+32,"coffreCote");
+            this.coffres.add(this.coffrePilleur3);
+        }
+        if (!this.playerState.getCoffreVide0){
+            this.coffreVide0 = this.physics.add.sprite(2880+16,2304+32,"coffreCote");
+            this.coffres.add(this.coffreVide0);
+        }
+        if (!this.playerState.getCoffreVide1){
+            this.coffreVide1 = this.physics.add.sprite(1568+16,1696+32,"coffreCote");
+            this.coffres.add(this.coffreVide1);
+        }
+        if (!this.playerState.getCoffreVide2){
+            this.coffreVide2 = this.physics.add.sprite(1024+16,2496+32,"coffreCote");
+            this.coffres.add(this.coffreVide2);
+        }
+        if (!this.playerState.getCoffreVide3){
+            this.coffreVide3 = this.physics.add.sprite(1792+16,2112+32,"coffreCote");
+            this.coffres.add(this.coffreVide3);
+        }
+        if (!this.playerState.getCoffreTemple){
+            this.coffreTemple = this.physics.add.sprite(3072+16,4928+32,"coffreCote");
+            this.coffres.add(this.coffreTemple);
+        }
+        if (!this.playerState.getCoffreFinal1){
+            this.coffreFinal1 = this.physics.add.sprite(1120+32,224+16,"coffreDevant");
+            this.coffres.add(this.coffreFinal1);
+        }
+        if (!this.playerState.getCoffreFinal2){
+            this.coffreFinal2 = this.physics.add.sprite(1568+32,224+16,"coffreDevant");
+            this.coffres.add(this.coffreFinal2);
+        }
+        if (!this.playerState.getCoffreFinal3){
+            this.coffreFinal3 = this.physics.add.sprite(1344+32,416+16,"coffreDevant");
+            this.coffres.add(this.coffreFinal3);
+        }
 
         this.golds = this.physics.add.group({allowGravity: false,immovable : true});
+
+        this.shadow = this.physics.add.image(0,0,'shadow');
 
         // Chargement du joueur...
         if (this.entrance == "mainCave"){
@@ -328,27 +362,18 @@ export class Outdoor extends Phaser.Scene{
             frameRate: 8,
             repeat: -1
         });
-        /*
         this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('perso', {start:1,end:3}),
-            frameRate: 10,
-            repeat: -1
+            key: 'hitRight',
+            frames: this.anims.generateFrameNumbers('persoHitRight', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
         });
-    
         this.anims.create({
-            key: 'turn',
-            frames: [ { key: 'perso', frame: 4 } ],
-            frameRate: 20
+            key: 'hitLeft',
+            frames: this.anims.generateFrameNumbers('persoHitLeft', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
         });
-    
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('perso', {start:5,end:8}),
-            frameRate: 10,
-            repeat: -1
-        });
-        */
 
     }
     
@@ -360,6 +385,11 @@ export class Outdoor extends Phaser.Scene{
         
         this.physics.moveTo(this.extraCollide,this.player.x,this.player.y+25,PLAYER_SPEED);
 
+         // - SUIVI DE SHADOW
+
+         this.shadow.body.position.x = this.player.x - 17;
+         this.shadow.body.position.y = this.player.y + 6;
+
         // - ATTAQUE
 
         if (this.playerState.getSword){
@@ -370,7 +400,7 @@ export class Outdoor extends Phaser.Scene{
                     this.playerState.isAttacking = true;
                     this.click = false;
                     this.attack();
-                    this.time.delayedCall(500, () => {
+                    this.time.delayedCall(387, () => {
                         this.playerState.isAttacking = false;
                     })
 
@@ -682,11 +712,9 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackUpDown.y = (this.player.y - 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0);
-            this.time.delayedCall(200, () => {
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackUpDown.body.enable = false;
             })
@@ -696,11 +724,9 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/8;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
-            this.time.delayedCall(200, () => {
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackUpDown.body.enable = false;
             })
@@ -710,11 +736,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitRight', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackGaucheDroite.body.enable = false;
             })
@@ -724,11 +749,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitLeft', true);
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackGaucheDroite.body.enable = false;
             })
@@ -738,11 +762,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitLeft', true);
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
@@ -752,11 +775,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitLeft', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
@@ -766,11 +788,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitRight', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
@@ -780,11 +801,10 @@ export class Outdoor extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.x += this.player.body.velocity.x/12;
-            this.player.y += this.player.body.velocity.y/12;
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitRight', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
@@ -824,6 +844,40 @@ export class Outdoor extends Phaser.Scene{
     lootCoffre(zone, coffre){
         coffre.body.enable = false;
         coffre.alpha = 0;
+        if(coffre == this.coffrePilleur1){
+            this.playerState.getCoffrePilleur1 = true;
+        }
+        else if(coffre == this.coffrePilleur2){
+            this.playerState.getCoffrePilleur2 = true;
+        }
+        else if(coffre == this.coffrePilleur3){
+            this.playerState.getCoffrePilleur3 = true;
+        }
+        else if(coffre == this.coffreVide0){
+            this.playerState.getCoffreVide0 = true;
+        }
+        else if(coffre == this.coffreVide1){
+            this.playerState.getCoffreVide1 = true;
+        }
+        else if(coffre == this.coffreVide2){
+            this.playerState.getCoffreVide2 = true;
+        }
+        else if(coffre == this.coffreVide3){
+            this.playerState.getCoffreVide3 = true;
+        }
+        else if(coffre == this.coffreTemple){
+            this.playerState.getCoffreTemple = true;
+        }
+        else if(coffre == this.coffreFinal1){
+            this.playerState.getCoffreFinal1 = true;
+        }
+        else if(coffre == this.coffreFinal2){
+            this.playerState.getCoffreFinal2 = true;
+        }
+        else if(coffre == this.coffreFinal3){
+            this.playerState.getCoffreFinal3 = true;
+        }
+
         this.dropGold(coffre.x,coffre.y,Math.floor((Math.random()*5)+10));
     }
 

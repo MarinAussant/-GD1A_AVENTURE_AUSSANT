@@ -31,15 +31,19 @@ export class MainCave extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 48 });
         */
 
-        this.load.spritesheet('persoRunSideRight','assets/images/sideRunningRight.png',
+        this.load.spritesheet('persoRunSideRight','assets/animations/sideRunningRight.png',
         { frameWidth: 32, frameHeight: 64 });
-        this.load.spritesheet('persoRunSideLeft','assets/images/sideRunningLeft.png',
+        this.load.spritesheet('persoRunSideLeft','assets/animations/sideRunningLeft.png',
         { frameWidth: 32, frameHeight: 64 });
-        this.load.spritesheet('persoRunBot','assets/images/bottomRunning.png',
+        this.load.spritesheet('persoRunBot','assets/animations/bottomRunning.png',
         { frameWidth: 32, frameHeight: 64 });
-        this.load.spritesheet('persoRunTop','assets/images/upRunning.png',
+        this.load.spritesheet('persoRunTop','assets/animations/upRunning.png',
         { frameWidth: 32, frameHeight: 64 });
-        this.load.spritesheet('persoIdle','assets/images/idle.png',
+        this.load.spritesheet('persoIdle','assets/animations/idle.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitRight','assets/animations/hitRight.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitLeft','assets/animations/hitLeft.png',
         { frameWidth: 32, frameHeight: 64 });
 
         this.load.image('ennemi',"assets/images/ennemi.png");
@@ -76,6 +80,7 @@ export class MainCave extends Phaser.Scene{
             this.player.direction = {x:0,y:0};
             this.playerState = {
                 gold : 0,
+                hp : 5,
 
                 isMoving : false,
                 isFalling : false,
@@ -85,6 +90,18 @@ export class MainCave extends Phaser.Scene{
                 isColliding : false,
 
                 canMove : true,
+
+                getCoffrePilleur1 : false,
+                getCoffrePilleur2 : false,
+                getCoffrePilleur3 : false,
+                getCoffreVide0 : false,
+                getCoffreVide1 : false,
+                getCoffreVide2 : false,
+                getCoffreVide3 : false,
+                getCoffreTemple : false,
+                getCoffreFinal1 : false,
+                getCoffreFinal2 : false,
+                getCoffreFinal3 : false,
 
                 unlockSortieTemple : false, 
                 unlockMainCave : false,
@@ -175,27 +192,18 @@ export class MainCave extends Phaser.Scene{
             frameRate: 8,
             repeat: -1
         });
-        /*
         this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('perso', {start:1,end:3}),
-            frameRate: 10,
-            repeat: -1
+            key: 'hitRight',
+            frames: this.anims.generateFrameNumbers('persoHitRight', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
         });
-    
         this.anims.create({
-            key: 'turn',
-            frames: [ { key: 'perso', frame: 4 } ],
-            frameRate: 20
+            key: 'hitLeft',
+            frames: this.anims.generateFrameNumbers('persoHitLeft', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
         });
-    
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('perso', {start:5,end:8}),
-            frameRate: 10,
-            repeat: -1
-        });
-        */
 
     }
     
@@ -213,7 +221,7 @@ export class MainCave extends Phaser.Scene{
                     this.playerState.isAttacking = true;
                     this.click = false;
                     this.attack();
-                    this.time.delayedCall(1000, () => {
+                    this.time.delayedCall(387, () => {
                         this.playerState.isAttacking = false;
                     })
 
@@ -356,9 +364,9 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackUpDown.y = (this.player.y - 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackUpDown.body.enable = false;
             })
@@ -368,9 +376,9 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/8;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackUpDown.body.enable = false;
             })
@@ -380,9 +388,10 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitRight', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackGaucheDroite.body.enable = false;
             })
@@ -392,9 +401,10 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitLeft', true);
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackGaucheDroite.body.enable = false;
             })
@@ -404,9 +414,10 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitLeft', true);
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
@@ -416,9 +427,10 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitLeft', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
@@ -428,9 +440,10 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitRight', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
@@ -440,9 +453,10 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/3);
-            this.player.setVelocityY(this.player.body.velocity.y/3);
-            this.time.delayedCall(200, () => {
+            this.player.anims.play('hitRight', true); 
+            this.player.setVelocityX(this.player.body.velocity.x/7);
+            this.player.setVelocityY(this.player.body.velocity.y/7);
+            this.time.delayedCall(387, () => {
                 this.playerState.canMove = true;
                 this.player.zoneAttackDiag.body.enable = false;
             })
