@@ -21,8 +21,22 @@ export class Outdoor extends Phaser.Scene{
     preload(){
 
         //Load SpritSheet
+        /*
         this.load.spritesheet('perso','assets/images/perso.png',
         { frameWidth: 32, frameHeight: 48 });
+        */
+
+        this.load.spritesheet('persoRunSideLeft','assets/images/sideRunningLeft.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoRunSideRight','assets/images/sideRunningRight.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoRunBot','assets/images/bottomRunning.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoRunTop','assets/images/upRunning.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoIdle','assets/images/idle.png',
+        { frameWidth: 32, frameHeight: 64 });
+
         this.load.image('ennemi',"assets/images/ennemi.png");
         this.load.image('gold',"assets/images/gold.png");
 
@@ -122,40 +136,40 @@ export class Outdoor extends Phaser.Scene{
 
         // Chargement du joueur...
         if (this.entrance == "mainCave"){
-            this.player = this.physics.add.sprite(2313, 2724, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(2313, 2724, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "mainCave2"){
-            this.player = this.physics.add.sprite(2825, 3478, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(2825, 3478, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "caveau1"){
-            this.player = this.physics.add.sprite(717, 4750, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(717, 4750, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "caveau2"){
-            this.player = this.physics.add.sprite(665, 2088, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(665, 2088, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "secret1"){
-            this.player = this.physics.add.sprite(1650, 3250, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(1650, 3250, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "secret2"){
-            this.player = this.physics.add.sprite(1922, 3791, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(1922, 3791, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "secret3"){
-            this.player = this.physics.add.sprite(1944, 4512, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(1944, 4512, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "propulsaEnter"){
-            this.player = this.physics.add.sprite(2361, 2055, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(2361, 2055, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "propulsaExit"){
-            this.player = this.physics.add.sprite(2850, 1660, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(2850, 1660, 'persoIdle').setScale(1);
         }
         else if (this.entrance == "temple"){
-            this.player = this.physics.add.sprite(3007, 3883, 'perso').setScale(1);
+            this.player = this.physics.add.sprite(3007, 3883, 'persoIdle').setScale(1);
         }
 
         this.playerState.isFalling = false;
         this.playerState.canMove = true;
         this.playerState.isPropulsing = false;
-        this.player.setSize(15,3).setOffset(8,45);
+        this.player.setSize(15,3).setOffset(8,61);
         this.player.setCollideWorldBounds(true);
         if(this.playerState.getSword) {
             this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,20));
@@ -279,11 +293,42 @@ export class Outdoor extends Phaser.Scene{
         // CAMERA
         this.cameras.main.setSize(1920, 1080);
         this.cameras.main.startFollow(this.player);
-        this.cameras.main.setDeadzone(40,40);
+        this.cameras.main.setDeadzone(50,50);
         this.cameras.main.setBounds(0,0,4960,6400);
-        this.cameras.main.setZoom(2);
+        this.cameras.main.setZoom(3);
 
         // - ANIMATIONS
+        this.anims.create({
+            key: 'left',
+            frames: this.anims.generateFrameNumbers('persoRunSideLeft', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'right',
+            frames: this.anims.generateFrameNumbers('persoRunSideRight', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'back',
+            frames: this.anims.generateFrameNumbers('persoRunTop', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'front',
+            frames: this.anims.generateFrameNumbers('persoRunBot', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'idle',
+            frames: this.anims.generateFrameNumbers('persoIdle', {start:0,end:7}),
+            frameRate: 8,
+            repeat: -1
+        });
+        /*
         this.anims.create({
             key: 'left',
             frames: this.anims.generateFrameNumbers('perso', {start:1,end:3}),
@@ -303,6 +348,7 @@ export class Outdoor extends Phaser.Scene{
             frameRate: 10,
             repeat: -1
         });
+        */
 
     }
     
@@ -330,6 +376,8 @@ export class Outdoor extends Phaser.Scene{
 
             };
         }
+
+        // - PROPULSA
 
         if (this.playerState.getBoots){
             if (Phaser.Input.Keyboard.JustDown(this.keySHIFT) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
@@ -609,7 +657,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.direction = { x : 0, y : -1};
             this.player.setVelocityX(0);
             this.player.setVelocityY(PLAYER_SPEED);
-            this.player.anims.play('turn');
+            this.player.anims.play('front',true);
         }
 
         if (this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown)){
@@ -617,14 +665,14 @@ export class Outdoor extends Phaser.Scene{
             this.player.direction = { x : 0, y : 1};
             this.player.setVelocityX(0);
             this.player.setVelocityY(-PLAYER_SPEED);
-            this.player.anims.play('turn');
+            this.player.anims.play('back',true);
         }
 
         if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown){ 
             this.playerState.isMoving = false; 
             this.player.setVelocityX(0);
             this.player.setVelocityY(0); 
-            this.player.anims.play('turn'); 
+            this.player.anims.play('idle',true); 
         }
     }
 
