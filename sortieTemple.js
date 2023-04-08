@@ -39,6 +39,15 @@ export class SortieTemple extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoHitBot','assets/animations/hitBot.png',
         { frameWidth: 32, frameHeight: 64 });
+        // Propulsion
+        this.load.spritesheet('propulsaRight','assets/animations/propulsaRight.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaLeft','assets/animations/propulsaLeft.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaBot','assets/animations/propulsaBot.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaTop','assets/animations/propulsaTop.png',
+        { frameWidth: 32, frameHeight: 64 });
 
         this.load.image('ennemi',"assets/images/ennemi.png");
         this.load.image('gold',"assets/items/goldGround.png");
@@ -98,9 +107,9 @@ export class SortieTemple extends Phaser.Scene{
         this.player.setSize(15,3).setOffset(8,61);
         this.player.setCollideWorldBounds(true);
         if(this.playerState.getSword) {
-            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,20));
-            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,20,75));
-            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,35,35));
+            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,40));
+            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,40,75));
+            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,50,50));
             this.player.zoneAttackUpDown.body.enable = false;
             this.player.zoneAttackGaucheDroite.body.enable = false;
             this.player.zoneAttackDiag.body.enable = false;
@@ -209,6 +218,30 @@ export class SortieTemple extends Phaser.Scene{
             frameRate: 33,
             repeat: 0
         });
+        this.anims.create({
+            key: 'propulsaLeft',
+            frames: this.anims.generateFrameNumbers('propulsaLeft', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaRight',
+            frames: this.anims.generateFrameNumbers('propulsaRight', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaBot',
+            frames: this.anims.generateFrameNumbers('propulsaBot', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaTop',
+            frames: this.anims.generateFrameNumbers('propulsaTop', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
 
     }
     
@@ -269,10 +302,20 @@ export class SortieTemple extends Phaser.Scene{
 
             if((this.playerState.unlockSortieTemple == false) && this.player.body.position.x <= 3232  && this.player.body.position.x >= 3136 && this.player.body.position.y <= 3904 && this.player.body.position.y >= 3744 ){
                 this.playerState.unlockSortieTemple = true;
-                this.Cave_SortieTemple_OpenPorte.alpha = 1;
-                this.Cave_SortieTemple_OpenWall.alpha = 1;
-                this.Cave_SortieTemple_ClosePorte.alpha = 0;
-                this.Cave_SortieTemple_CloseWall.alpha = 0;
+                this.cameras.main.shake(1500, 0.0002);
+                this.tweens.add({
+                    targets: [this.Cave_SortieTemple_OpenPorte,this.Cave_SortieTemple_OpenWall],
+                    alpha: 1,
+                    duration: 2000,
+                    ease: 'Power2'
+                });
+				this.tweens.add({
+                    targets: [this.Cave_SortieTemple_ClosePorte,this.Cave_SortieTemple_CloseWall],
+                    alpha: 0,
+                    duration: 3500,
+                    ease: 'Power2'
+                });
+		
                 this.collideSortieTemple.active = false;
             }
         }
@@ -381,7 +424,7 @@ export class SortieTemple extends Phaser.Scene{
 
         if (this.player.direction.x == 0 && this.player.direction.y == 1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y) + this.player.body.velocity.y/12;
+            this.player.zoneAttackUpDown.y = (this.player.y-16) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitUp', true); 
@@ -394,7 +437,7 @@ export class SortieTemple extends Phaser.Scene{
         }
         else if (this.player.direction.x == 0 && this.player.direction.y == -1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/12;
+            this.player.zoneAttackUpDown.y = (this.player.y + 64) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitBot', true); 
@@ -488,9 +531,13 @@ export class SortieTemple extends Phaser.Scene{
     propulsing(){
         if (this.player.direction.x != 0){
             this.player.setVelocityX((PLAYER_SPEED*2) * this.player.direction.x);
+            if (this.player.direction.x == -1) this.player.anims.play("propulsaLeft",true);
+            else this.player.anims.play("propulsaRight",true)
         }
         else {
             this.player.setVelocityY((PLAYER_SPEED*2) * -this.player.direction.y);
+            if (this.player.direction.y == -1) this.player.anims.play("propulsaBot",true);
+            else this.player.anims.play("propulsaTop",true)
         }
     }
 

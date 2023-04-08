@@ -44,6 +44,15 @@ export class Outdoor extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoHitBot','assets/animations/hitBot.png',
         { frameWidth: 32, frameHeight: 64 });
+        // Propulsion
+        this.load.spritesheet('propulsaRight','assets/animations/propulsaRight.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaLeft','assets/animations/propulsaLeft.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaBot','assets/animations/propulsaBot.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaTop','assets/animations/propulsaTop.png',
+        { frameWidth: 32, frameHeight: 64 });
 
         this.load.image('ennemi',"assets/images/ennemi.png");
         this.load.image('gold',"assets/items/goldGround.png");
@@ -215,9 +224,9 @@ export class Outdoor extends Phaser.Scene{
         this.player.setSize(15,3).setOffset(8,61);
         this.player.setCollideWorldBounds(true);
         if(this.playerState.getSword) {
-            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,20));
-            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,20,75));
-            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,35,35));
+            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,40));
+            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,40,75));
+            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,50,50));
             this.player.zoneAttackUpDown.body.enable = false;
             this.player.zoneAttackGaucheDroite.body.enable = false;
             this.player.zoneAttackDiag.body.enable = false;
@@ -393,6 +402,30 @@ export class Outdoor extends Phaser.Scene{
             frames: this.anims.generateFrameNumbers('persoHitBot', {start:0,end:10}),
             frameRate: 33,
             repeat: 0
+        });
+        this.anims.create({
+            key: 'propulsaLeft',
+            frames: this.anims.generateFrameNumbers('propulsaLeft', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaRight',
+            frames: this.anims.generateFrameNumbers('propulsaRight', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaBot',
+            frames: this.anims.generateFrameNumbers('propulsaBot', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaTop',
+            frames: this.anims.generateFrameNumbers('propulsaTop', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
         });
 
     }
@@ -593,50 +626,111 @@ export class Outdoor extends Phaser.Scene{
 
             if((this.playerState.unlockSecret3 == false) && this.player.body.position.x <= 2016  && this.player.body.position.x >= 1856 && this.player.body.position.y <= 4576 && this.player.body.position.y >= 4448 ){
                 this.playerState.unlockSecret3 = true;
-                this.Ext_OpenPorte_Secret3.alpha = 1;
-                this.Ext_WallOpenPorte_Secret3.alpha = 1;
-                this.Ext_ClosePorte_Secret3.alpha = 0;
-                this.Ext_WallClosePorte_Secret3.alpha = 0;
+                this.cameras.main.shake(1500, 0.0002);
+                this.tweens.add({
+                    targets: [this.Ext_ClosePorte_Secret3,this.Ext_WallClosePorte_Secret3],
+                    alpha: 0,
+                    duration: 3500,
+                    ease: 'Power2'
+                });
+                this.tweens.add({
+                    targets: [this.Ext_OpenPorte_Secret3,this.Ext_WallOpenPorte_Secret3],
+                    alpha: 1,
+                    duration: 2000,
+                    ease: 'Power2'
+                });
                 this.collideSecret3.active = false;
             }
             else if((this.playerState.unlockSecret2 == false) && this.player.body.position.x <= 1952  && this.player.body.position.x >= 1824 && this.player.body.position.y <= 3840 && this.player.body.position.y >= 3680 ){
                 this.playerState.unlockSecret2 = true;
-                this.Ext_OpenPorte_Secret2.alpha = 1;
-                this.Ext_WallOpenPorte_Secret2.alpha = 1;
-                this.Ext_ClosePorte_Secret2.alpha = 0;
-                this.Ext_WallClosePorte_Secret2.alpha = 0;
+                this.cameras.main.shake(1500, 0.0002);
+                this.tweens.add({
+                    targets: [this.Ext_OpenPorte_Secret2,this.Ext_WallOpenPorte_Secret2],
+                    alpha: 1,
+                    duration: 2000,
+                    ease: 'Power2'
+                });
+				this.tweens.add({
+                    targets: [this.Ext_ClosePorte_Secret2,this.Ext_WallClosePorte_Secret2],
+                    alpha: 0,
+                    duration: 3500,
+                    ease: 'Power2'
+                });
                 this.collideSecret2.active = false;
             }
             else if((this.playerState.unlockSecret1 == false) && this.player.body.position.x <= 1728  && this.player.body.position.x >= 1600 && this.player.body.position.y <= 3328 && this.player.body.position.y >= 3168 ){
                 this.playerState.unlockSecret1 = true;
-                this.Ext_OpenPorte_Secret1.alpha = 1;
-                this.Ext_WallOpenPorte_Secret1.alpha = 1;
-                this.Ext_ClosePorte_Secret1.alpha = 0;
-                this.Ext_WallClosePorte_Secret1.alpha = 0;
+                this.cameras.main.shake(1500, 0.0002);
+                this.tweens.add({
+                    targets: [this.Ext_OpenPorte_Secret1,this.Ext_WallOpenPorte_Secret1],
+                    alpha: 1,
+                    duration: 2000,
+                    ease: 'Power2'
+                });
+              
+				this.tweens.add({
+                    targets: [this.Ext_ClosePorte_Secret1,this.Ext_WallClosePorte_Secret1],
+                    alpha: 0,
+                    duration: 3500,
+                    ease: 'Power2'
+                });
                 this.collideSecret1.active = false;
             }
             else if((this.playerState.unlockMainCave == false) && this.player.body.position.x <= 2880  && this.player.body.position.x >= 2720 && this.player.body.position.y <= 3552 && this.player.body.position.y >= 3424 ){
                 this.playerState.unlockMainCave = true;
-                this.Ext_OpenPorte_MainCave.alpha = 1;
-                this.Ext_WallOpenPorte_MainCave.alpha = 1;
-                this.Ext_ClosePorte_MainCave.alpha = 0;
-                this.Ext_WallClosePorte_MainCave.alpha = 0;
+                this.cameras.main.shake(1500, 0.0002);
+                this.tweens.add({
+                    targets: [this.Ext_OpenPorte_MainCave,this.Ext_WallOpenPorte_MainCave],
+                    alpha: 1,
+                    duration: 2000,
+                    ease: 'Power2'
+                });
+
+				this.tweens.add({
+                    targets: [this.Ext_ClosePorte_MainCave,this.Ext_WallClosePorte_MainCave],
+                    alpha: 0,
+                    duration: 3500,
+                    ease: 'Power2'
+                });
+
                 this.collideMainCave.active = false;
             }
             else if((this.playerState.unlockPropulsa == false) && this.player.body.position.x <= 2432  && this.player.body.position.x >= 2272 && this.player.body.position.y <= 2112 && this.player.body.position.y >= 1920 ){
                 this.playerState.unlockPropulsa = true;
-                this.Ext_OpenPorte_Propulsa.alpha = 1;
-                this.Ext_WallOpenPorte_Propulsa.alpha = 1;
-                this.Ext_ClosePorte_Propulsa.alpha = 0;
-                this.Ext_WallClosePorte_Propulsa.alpha = 0;
+                this.cameras.main.shake(1500, 0.0002);
+                this.tweens.add({
+                    targets: [this.Ext_OpenPorte_Propulsa,this.Ext_WallOpenPorte_Propulsa],
+                    alpha: 1,
+                    duration: 2000,
+                    ease: 'Power2'
+                });
+
+				this.tweens.add({
+                    targets: [this.Ext_ClosePorte_Propulsa,this.Ext_WallClosePorte_Propulsa],
+                    alpha: 0,
+                    duration: 3500,
+                    ease: 'Power2'
+                });
+
                 this.collidePropulsa.active = false;
             }
             else if((this.playerState.unlockCaveau2 == false) && this.player.body.position.x <= 690  && this.player.body.position.x >= 608 && this.player.body.position.y <= 2112 && this.player.body.position.y >= 1984 ){
                 this.playerState.unlockCaveau2 = true;
-                this.Ext_OpenPorte_Caveau2.alpha = 1;
-                this.Ext_WallOpenPorte_Caveau2.alpha = 1;
-                this.Ext_ClosePorte_Caveau2.alpha = 0;
-                this.Ext_WallClosePorte_Caveau2.alpha = 0;
+                this.cameras.main.shake(1500, 0.0002);
+                this.tweens.add({
+                    targets: [this.Ext_OpenPorte_Caveau2,this.Ext_WallOpenPorte_Caveau2],
+                    alpha: 1,
+                    duration: 2000,
+                    ease: 'Power2'
+                });
+
+				this.tweens.add({
+                    targets: [this.Ext_ClosePorte_Caveau2,this.Ext_WallClosePorte_Caveau2],
+                    alpha: 0,
+                    duration: 3500,
+                    ease: 'Power2'
+                });
+
                 this.collideCaveau2.active = false;
             }
         }
@@ -729,7 +823,7 @@ export class Outdoor extends Phaser.Scene{
 
         if (this.player.direction.x == 0 && this.player.direction.y == 1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y) + this.player.body.velocity.y/12;
+            this.player.zoneAttackUpDown.y = (this.player.y-16) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitUp', true); 
@@ -742,7 +836,7 @@ export class Outdoor extends Phaser.Scene{
         }
         else if (this.player.direction.x == 0 && this.player.direction.y == -1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/12;
+            this.player.zoneAttackUpDown.y = (this.player.y + 64) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitBot', true); 
@@ -836,9 +930,13 @@ export class Outdoor extends Phaser.Scene{
     propulsing(){
         if (this.player.direction.x != 0){
             this.player.setVelocityX((PLAYER_SPEED*2) * this.player.direction.x);
+            if (this.player.direction.x == -1) this.player.anims.play("propulsaLeft",true);
+            else this.player.anims.play("propulsaRight",true)
         }
         else {
             this.player.setVelocityY((PLAYER_SPEED*2) * -this.player.direction.y);
+            if (this.player.direction.y == -1) this.player.anims.play("propulsaBot",true);
+            else this.player.anims.play("propulsaTop",true)
         }
     }
 
@@ -907,7 +1005,7 @@ export class Outdoor extends Phaser.Scene{
         this.time.addEvent({        
             delay : nb,
             callback : () => {
-                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.85);
+                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.85).setAlpha(0.9);
             },
             repeat : nb
         })

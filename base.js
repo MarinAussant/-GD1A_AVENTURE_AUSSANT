@@ -31,7 +31,7 @@ var config =
     pixelArt: true,
     input:
     {
-        gamepad: true
+        gamepad: false
     }
 };
 

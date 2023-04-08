@@ -1,4 +1,5 @@
 const PLAYER_SPEED = 200;
+const MOMIES_SPEED = 25;
 export class MainCave extends Phaser.Scene{
 
     constructor(){
@@ -27,6 +28,9 @@ export class MainCave extends Phaser.Scene{
 
     preload(){
 
+        // Srritesheet Perso Principal 
+
+        // Déplacement
         this.load.spritesheet('persoRunSideRight','assets/animations/sideRunningRight.png',
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoRunSideLeft','assets/animations/sideRunningLeft.png',
@@ -37,6 +41,7 @@ export class MainCave extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoIdle','assets/animations/idle.png',
         { frameWidth: 32, frameHeight: 64 });
+        // Attaque
         this.load.spritesheet('persoHitRight','assets/animations/hitRight.png',
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoHitLeft','assets/animations/hitLeft.png',
@@ -44,6 +49,25 @@ export class MainCave extends Phaser.Scene{
         this.load.spritesheet('persoHitUp','assets/animations/hitUp.png',
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoHitBot','assets/animations/hitBot.png',
+        { frameWidth: 32, frameHeight: 64 });
+        // Propulsion
+        this.load.spritesheet('propulsaRight','assets/animations/propulsaRight.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaLeft','assets/animations/propulsaLeft.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaBot','assets/animations/propulsaBot.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('propulsaTop','assets/animations/propulsaTop.png',
+        { frameWidth: 32, frameHeight: 64 });
+
+        // Spritesheet Momies
+        this.load.spritesheet('momieRight','assets/animations/rightMomie.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('momieLeft','assets/animations/leftMomie.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('momieBot','assets/animations/frontMomie.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('momieTop','assets/animations/backMomie.png',
         { frameWidth: 32, frameHeight: 64 });
 
         this.load.image('ennemi',"assets/images/ennemi.png");
@@ -116,6 +140,7 @@ export class MainCave extends Phaser.Scene{
                 isColliding : false,
 
                 canMove : true,
+                takingDamage : false,
 
                 getCoffrePilleur1 : false,
                 getCoffrePilleur2 : false,
@@ -160,23 +185,44 @@ export class MainCave extends Phaser.Scene{
         this.player.setSize(15,3).setOffset(8,61);
         this.player.setCollideWorldBounds(true);
         if(this.playerState.getSword) {
-            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,20));
-            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,20,75));
-            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,35,35));
+            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,40));
+            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,40,75));
+            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,50,50));
             this.player.zoneAttackUpDown.body.enable = false;
             this.player.zoneAttackGaucheDroite.body.enable = false;
             this.player.zoneAttackDiag.body.enable = false;
         }
+
+        this.momies = this.physics.add.group();
+        const Cave_Princ_MomieTest = carteDuNiveau.getObjectLayer('Cave_Princ_MomieTest');
+        Cave_Princ_MomieTest.objects.forEach(eachMomie => {
+            this.momies.create(eachMomie.x+16,  eachMomie.y-16, "momieBot").body.setAllowGravity(false);
+        });
+        this.momies.children.each(function (momie) {
+            momie.hp = 3;
+            momie.isAlive = true;
+            momie.getHit = false;
+            momie.canMove = true;
+            momie.setSize(20,40).setOffset(6,18);
+            momie.direction = {x : 0, y : -1};
+        })
 
         // - ADD ... choses.... cool ? 
 
         this.physics.add.collider(this.player,this.coffres,this.collide, null, this);
         this.physics.add.overlap(this.shadow,this.golds, this.getGold, null, this);
         
-
+        // Colliders Coffres
         this.physics.add.overlap(this.player.zoneAttackUpDown, this.coffres, this.lootCoffre,null,this);
         this.physics.add.overlap(this.player.zoneAttackGaucheDroite, this.coffres, this.lootCoffre,null,this);
         this.physics.add.overlap(this.player.zoneAttackDiag, this.coffres, this.lootCoffre,null,this);
+
+        // Colliders Momies
+        this.physics.add.collider(this.momies,this.momies);
+        this.physics.add.overlap(this.shadow,this.momies,this.takeDamage,null,this);
+        this.physics.add.overlap(this.player.zoneAttackUpDown, this.momies, this.hitEnnemi,null,this);
+        this.physics.add.overlap(this.player.zoneAttackGaucheDroite, this.momies, this.hitEnnemi,null,this);
+        this.physics.add.overlap(this.player.zoneAttackDiag, this.momies, this.hitEnnemi,null,this);
 
         // - DECORS DEVANT
         const Cave_Princ_Wall_Front = carteDuNiveau.createLayer("Cave_Princ_Wall_Front",tileset);
@@ -187,12 +233,14 @@ export class MainCave extends Phaser.Scene{
         Cave_Princ_Collide.alpha = 0;
         Cave_Princ_Collide.setCollisionByProperty({ collide: true }); 
         this.physics.add.collider(this.player, Cave_Princ_Collide, this.collide, null,this);
+        this.physics.add.collider(this.momies,Cave_Princ_Collide);
 
         if(!this.playerState.unlockMainCave){
             const Cave_Prince_Secret_Collide = carteDuNiveau.createLayer("Cave_Prince_Secret_Collide",tileset);
             Cave_Prince_Secret_Collide.alpha = 0;
             Cave_Prince_Secret_Collide.setCollisionByProperty({ collide: true }); 
             this.physics.add.collider(this.player, Cave_Prince_Secret_Collide, this.collide, null,this);
+            this.physics.add.collider(this.momies,Cave_Prince_Secret_Collide);
         }
 
         // - CONTRÔLE CLAVIER
@@ -215,6 +263,7 @@ export class MainCave extends Phaser.Scene{
 
         // - ANIMATIONS
 
+        // Animations Perso
         this.anims.create({
             key: 'left',
             frames: this.anims.generateFrameNumbers('persoRunSideLeft', {start:0,end:11}),
@@ -268,6 +317,56 @@ export class MainCave extends Phaser.Scene{
             frames: this.anims.generateFrameNumbers('persoHitBot', {start:0,end:10}),
             frameRate: 33,
             repeat: 0
+        });
+        this.anims.create({
+            key: 'propulsaLeft',
+            frames: this.anims.generateFrameNumbers('propulsaLeft', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaRight',
+            frames: this.anims.generateFrameNumbers('propulsaRight', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaBot',
+            frames: this.anims.generateFrameNumbers('propulsaBot', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'propulsaTop',
+            frames: this.anims.generateFrameNumbers('propulsaTop', {start:0,end:5}),
+            frameRate: 6,
+            repeat: -1
+        });
+
+        // Animations Momies
+        this.anims.create({
+            key: 'leftMomie',
+            frames: this.anims.generateFrameNumbers('momieLeft', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'rightMomie',
+            frames: this.anims.generateFrameNumbers('momieRight', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'botMomie',
+            frames: this.anims.generateFrameNumbers('momieBot', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'topMomie',
+            frames: this.anims.generateFrameNumbers('momieTop', {start:0,end:11}),
+            frameRate: 12,
+            repeat: -1
         });
 
         this.firstLoad = false;
@@ -341,8 +440,7 @@ export class MainCave extends Phaser.Scene{
             this.player.setVelocityY(this.player.body.velocity.y/5); 
 
 			this.time.delayedCall(500, () => {
-					//this.scene.start('Outdoor', {entrance: "mainCave", playerState : this.playerState});
-                    this.scene.start('SortieTemple', {entrance: "donjon", playerState : this.playerState});
+					this.scene.start('Outdoor', {entrance: "mainCave", playerState : this.playerState});
 			})
 
         }
@@ -363,7 +461,7 @@ export class MainCave extends Phaser.Scene{
         if(this.playerState.canMove == true){
             this.playerMovement();
         }
-        /*this.moveEnnemi(player);*/
+        this.moveMomies();
     
     }
 
@@ -448,7 +546,7 @@ export class MainCave extends Phaser.Scene{
 
         if (this.player.direction.x == 0 && this.player.direction.y == 1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y) + this.player.body.velocity.y/12;
+            this.player.zoneAttackUpDown.y = (this.player.y-16) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitUp', true); 
@@ -461,7 +559,7 @@ export class MainCave extends Phaser.Scene{
         }
         else if (this.player.direction.x == 0 && this.player.direction.y == -1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/12;
+            this.player.zoneAttackUpDown.y = (this.player.y + 64) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitBot', true); 
@@ -555,9 +653,13 @@ export class MainCave extends Phaser.Scene{
     propulsing(){
         if (this.player.direction.x != 0){
             this.player.setVelocityX((PLAYER_SPEED*2) * this.player.direction.x);
+            if (this.player.direction.x == -1) this.player.anims.play("propulsaLeft",true);
+            else this.player.anims.play("propulsaRight",true)
         }
         else {
             this.player.setVelocityY((PLAYER_SPEED*2) * -this.player.direction.y);
+            if (this.player.direction.y == -1) this.player.anims.play("propulsaBot",true);
+            else this.player.anims.play("propulsaTop",true)
         }
     }
 
@@ -574,7 +676,7 @@ export class MainCave extends Phaser.Scene{
         this.time.addEvent({        
             delay : nb,
             callback : () => {
-                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.85);
+                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.85).setAlpha(0.9);
             },
             repeat : nb
         })
@@ -591,6 +693,123 @@ export class MainCave extends Phaser.Scene{
     collide(){
         if (this.playerState.isPropulsing)this.playerState.isColliding = true;
         else this.playerState.isColliding = false;
+    }
+    
+    moveMomies(){
+        this.momies.children.each(function (momie) {
+
+            let directions = [
+                {x: 1, y: 0},
+                {x: 1, y: 1},
+                {x: 0, y: 1},
+                {x: -1, y: 1},
+                {x: -1, y: 0},
+                {x: -1, y: -1},
+                {x: 0, y: -1},
+                {x: 1, y: -1},
+            ];
+
+            var angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, momie.x, momie.y);
+            let index = Math.round(angle / (Math.PI / 4)) + 4;
+            index > 7 ? index -= 8 : index;
+            momie.direction = directions[index];
+            if(momie.canMove){
+
+                if (momie.direction.x == 0 && momie.direction.y == 1){
+                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                    momie.anims.play('botMomie', true)
+                }
+                if (momie.direction.x == 0 && momie.direction.y == -1){
+                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                    momie.anims.play('topMomie', true)
+                }
+                if (momie.direction.x == 1 && momie.direction.y == 0){
+                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                    momie.anims.play('rightMomie', true)
+                }
+                if (momie.direction.x == -1 && momie.direction.y == 0){
+                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                    momie.anims.play('leftMomie', true)
+                }
+                if (momie.direction.x == -1 && momie.direction.y == 1){
+                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.anims.play('leftMomie', true)
+                }
+                if (momie.direction.x == -1 && momie.direction.y == -1){
+                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.anims.play('leftMomie', true)
+                }
+                if (momie.direction.x == 1 && momie.direction.y == -1){
+                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.anims.play('rightMomie', true)
+                }
+                if (momie.direction.x == 1 && momie.direction.y == 1){
+                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                    momie.anims.play('rightMomie', true)
+                }
+
+            }
+        }, this)
+    }
+
+    hitEnnemi(player,ennemi){
+        if(!ennemi.getHit){
+            ennemi.getHit = true;
+            ennemi.hp -= 1
+            ennemi.canMove = false;
+            this.cameras.main.shake(200, 0.0001);
+            ennemi.setTint(0xff4967);
+            ennemi.setVelocityX(-ennemi.direction.x * ennemi.body.speed*2);
+            ennemi.setVelocityY(-ennemi.direction.y * ennemi.body.speed*2);
+            this.time.delayedCall(400, () => {
+
+                if(ennemi.hp <= 0){
+                    this.tweens.add({
+                        targets: ennemi,
+                        alpha: 0,
+                        duration: 300,
+                        ease: 'Power2'
+                    });
+                    this.time.delayedCall(200, () => {
+                        this.dropGold(ennemi.x,ennemi.y,Math.floor((Math.random()*3)+1))
+                        ennemi.destroy();
+                    })
+                }
+                else {
+                    ennemi.setTint(0xffffff);
+                    ennemi.canMove = true;
+                    ennemi.getHit = false;
+                }    
+            })
+
+        }
+    }
+
+    takeDamage(){
+        if(!this.playerState.takingDamage){
+            this.playerState.takingDamage = true;
+            this.cameras.main.shake(200, 0.0002);
+            this.playerState.hp -= 1;
+            this.player.setTint(0xff4967);
+
+            if(this.playerState.isPropulsing){
+                this.playerState.isColliding = true;
+            }
+
+            this.time.delayedCall(1000, () => {
+                this.playerState.takingDamage = false;
+                this.player.setTint(0xffffff);
+            })
+        }
+        
     }
     /*
     moveEnnemi(player){
