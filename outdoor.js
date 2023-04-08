@@ -321,7 +321,6 @@ export class Outdoor extends Phaser.Scene{
         this.fallingCollider =this.physics.add.collider(this.extraCollide, Ext_FallOverLap,this.playerFalling,null,this);
         
         
-
         // CONTRÔLE CLAVIER
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.on('pointerdown', () => this.click = true);
@@ -400,7 +399,6 @@ export class Outdoor extends Phaser.Scene{
     
     
     update(){
-        console.log(this.player.body.position);
 
         // - SUIVI DE EXTRACOLLIDE
         
@@ -643,13 +641,11 @@ export class Outdoor extends Phaser.Scene{
             }
         }
         
-
         // - MOVEMENT 
         if(this.playerState.canMove == true){
             this.playerMovement();
         }
 
-        
     }
 
     playerMovement(){

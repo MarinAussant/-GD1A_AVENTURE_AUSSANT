@@ -127,6 +127,8 @@ export class MainCave extends Phaser.Scene{
                 getCoffre2Caveau1 : false,
                 getCoffre1Caveau2 : false,
                 getCoffre2Caveau2 : false,
+                getCoffrePropulsa1 : false,
+                getCoffrePropulsa2 : false,
                 getCoffreVide0 : false,
                 getCoffreVide1 : false,
                 getCoffreVide2 : false,
@@ -339,7 +341,8 @@ export class MainCave extends Phaser.Scene{
             this.player.setVelocityY(this.player.body.velocity.y/5); 
 
 			this.time.delayedCall(500, () => {
-					this.scene.start('Outdoor', {entrance: "mainCave", playerState : this.playerState});
+					//this.scene.start('Outdoor', {entrance: "mainCave", playerState : this.playerState});
+                    this.scene.start('SortieTemple', {entrance: "donjon", playerState : this.playerState});
 			})
 
         }
