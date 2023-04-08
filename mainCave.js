@@ -26,10 +26,6 @@ export class MainCave extends Phaser.Scene{
     }
 
     preload(){
-        /*
-        this.load.spritesheet('perso','assets/images/perso.png',
-        { frameWidth: 32, frameHeight: 48 });
-        */
 
         this.load.spritesheet('persoRunSideRight','assets/animations/sideRunningRight.png',
         { frameWidth: 32, frameHeight: 64 });
@@ -45,8 +41,17 @@ export class MainCave extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoHitLeft','assets/animations/hitLeft.png',
         { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitUp','assets/animations/hitUp.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitBot','assets/animations/hitBot.png',
+        { frameWidth: 32, frameHeight: 64 });
 
         this.load.image('ennemi',"assets/images/ennemi.png");
+        this.load.image('gold',"assets/items/goldGround.png");
+        this.load.image('shadow',"assets/images/shadow.png");
+
+        this.load.image('coffreDevantCave',"assets/images/frontChestCave.png");
+        this.load.image('coffreCoteCave',"assets/images/sideChestCave.png");
 
         //Load Tiles + TileSet
         this.load.image("Phaser_tuilesdejeu","assets/images/tileset.png");
@@ -65,7 +70,28 @@ export class MainCave extends Phaser.Scene{
         const Cave_Princ_Wall = carteDuNiveau.createLayer("Cave_Princ_Wall",tileset);
         const Cave_Princ_Donjon = carteDuNiveau.createLayer("Cave_Princ_Donjon",tileset);
 
-        // - PLAYER 
+        if(!this.firstLoad){
+            if(this.playerState.unlockMainCave){
+                const Cave_Princ_Secret = carteDuNiveau.createLayer("Cave_Princ_Secret",tileset);
+            }
+        }
+
+        this.coffres = this.physics.add.group({allowGravity: false,immovable : true});
+
+        if(this.firstLoad){
+            this.coffreTemple0 = this.physics.add.sprite(3520+16,3200+32,"coffreCoteCave");
+            this.coffres.add(this.coffreTemple0);
+        }
+        else if(!this.playerState.getCoffreTemple0){
+            this.coffreTemple0 = this.physics.add.sprite(3520+16,3200+32,"coffreCoteCave");
+            this.coffres.add(this.coffreTemple0);
+        }
+
+        // - PLAYER
+
+        this.golds = this.physics.add.group({allowGravity: false,immovable : true});
+
+        this.shadow = this.physics.add.image(0,0,'shadow');
 
         if (this.entrance == "main"){
             this.player = this.physics.add.sprite(2440, 2736, 'persoIdle').setScale(1);
@@ -94,10 +120,18 @@ export class MainCave extends Phaser.Scene{
                 getCoffrePilleur1 : false,
                 getCoffrePilleur2 : false,
                 getCoffrePilleur3 : false,
+                getCoffreSecret1 : false,
+                getCoffreSecret2 : false,
+                getCoffreSecret3 : false,
+                getCoffre1Caveau1 : false,
+                getCoffre2Caveau1 : false,
+                getCoffre1Caveau2 : false,
+                getCoffre2Caveau2 : false,
                 getCoffreVide0 : false,
                 getCoffreVide1 : false,
                 getCoffreVide2 : false,
                 getCoffreVide3 : false,
+                getCoffreTemple0 : false,
                 getCoffreTemple : false,
                 getCoffreFinal1 : false,
                 getCoffreFinal2 : false,
@@ -121,7 +155,7 @@ export class MainCave extends Phaser.Scene{
         
         this.playerState.canMove = true;
         this.playerState.isPropulsing = false;
-        this.player.setSize(15,3).setOffset(8,45);
+        this.player.setSize(15,3).setOffset(8,61);
         this.player.setCollideWorldBounds(true);
         if(this.playerState.getSword) {
             this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,20));
@@ -132,6 +166,16 @@ export class MainCave extends Phaser.Scene{
             this.player.zoneAttackDiag.body.enable = false;
         }
 
+        // - ADD ... choses.... cool ? 
+
+        this.physics.add.collider(this.player,this.coffres,this.collide, null, this);
+        this.physics.add.overlap(this.shadow,this.golds, this.getGold, null, this);
+        
+
+        this.physics.add.overlap(this.player.zoneAttackUpDown, this.coffres, this.lootCoffre,null,this);
+        this.physics.add.overlap(this.player.zoneAttackGaucheDroite, this.coffres, this.lootCoffre,null,this);
+        this.physics.add.overlap(this.player.zoneAttackDiag, this.coffres, this.lootCoffre,null,this);
+
         // - DECORS DEVANT
         const Cave_Princ_Wall_Front = carteDuNiveau.createLayer("Cave_Princ_Wall_Front",tileset);
         const Cave_Princ_Exit = carteDuNiveau.createLayer("Cave_Princ_Exit",tileset);
@@ -141,6 +185,13 @@ export class MainCave extends Phaser.Scene{
         Cave_Princ_Collide.alpha = 0;
         Cave_Princ_Collide.setCollisionByProperty({ collide: true }); 
         this.physics.add.collider(this.player, Cave_Princ_Collide, this.collide, null,this);
+
+        if(!this.playerState.unlockMainCave){
+            const Cave_Prince_Secret_Collide = carteDuNiveau.createLayer("Cave_Prince_Secret_Collide",tileset);
+            Cave_Prince_Secret_Collide.alpha = 0;
+            Cave_Prince_Secret_Collide.setCollisionByProperty({ collide: true }); 
+            this.physics.add.collider(this.player, Cave_Prince_Secret_Collide, this.collide, null,this);
+        }
 
         // - CONTRÔLE CLAVIER
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -204,12 +255,31 @@ export class MainCave extends Phaser.Scene{
             frameRate: 33,
             repeat: 0
         });
+        this.anims.create({
+            key: 'hitUp',
+            frames: this.anims.generateFrameNumbers('persoHitUp', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'hitBot',
+            frames: this.anims.generateFrameNumbers('persoHitBot', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
+        });
+
+        this.firstLoad = false;
 
     }
     
     
     update(){
         //console.log(this.player.body.position);
+
+        // - SUIVI DE SHADOW
+
+        this.shadow.body.position.x = this.player.x - 17;
+        this.shadow.body.position.y = this.player.y + 6;
 
         // - ATTAQUE
 
@@ -246,6 +316,19 @@ export class MainCave extends Phaser.Scene{
             }
         }
 
+        // TRIGGERS BRACELET
+        if (this.playerState.getBracelet && Phaser.Input.Keyboard.JustDown(this.keyA) && !this.playerState.isAttacking && !this.playerState.isPropulsing){
+
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0); 
+            this.playerState.canMove = false;
+            this.cameras.main.fadeOut(300, 184, 231, 249);
+            this.time.delayedCall(300, () => {
+                this.cameras.main.fadeIn(1000, 184, 231, 249);
+                this.playerState.canMove = true;
+            })
+        }
+
         // - TRIGGERS
 
         if (this.canOut && (this.player.body.position.x <= 2428 && this.player.body.position.y <= 2782)){
@@ -260,7 +343,7 @@ export class MainCave extends Phaser.Scene{
 			})
 
         }
-        else if (this.canOut && (this.player.body.position.x <= 2735 && this.player.body.position.x >= 2648 && this.player.body.position.y >= 3413)){
+        else if (this.canOut && (this.player.body.position.x <= 2735 && this.player.body.position.x >= 2648 && this.player.body.position.y >= 3425)){
             this.canOut = false;
             this.cameras.main.fadeOut(400, 255, 254, 170);
             this.playerState.canMove = false;
@@ -285,7 +368,7 @@ export class MainCave extends Phaser.Scene{
 
         // - DEPLACEMENT ET ANIMATION
 
-        if (this.cursors.left.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){
+        if (this.keyQ.isDown && (!this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = {x : -1, y : 0};
             this.player.setVelocityX(-PLAYER_SPEED); 
@@ -293,7 +376,7 @@ export class MainCave extends Phaser.Scene{
             this.player.anims.play('left', true); 
         }
 
-        if (this.cursors.left.isDown && this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown)){
+        if (this.keyQ.isDown && this.keyZ.isDown && (!this.keyD.isDown && !this.keyS.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : 1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2)/2); 
@@ -301,7 +384,7 @@ export class MainCave extends Phaser.Scene{
             this.player.anims.play('left', true); 
         }
 
-        if (this.cursors.left.isDown && this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.up.isDown)){
+        if (this.keyQ.isDown && this.keyS.isDown && (!this.keyD.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : -1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2/2));
@@ -310,7 +393,7 @@ export class MainCave extends Phaser.Scene{
         }
 
 
-        if (this.cursors.right.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){ //sinon si la touche droite est appuyée
+        if (this.keyD.isDown && (!this.keyQ.isDown && !this.keyS.isDown && !this.keyZ.isDown)){ //sinon si la touche droite est appuyée
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 0};
             this.player.setVelocityX(PLAYER_SPEED);
@@ -318,7 +401,7 @@ export class MainCave extends Phaser.Scene{
             this.player.anims.play('right', true); 
         }
 
-        if (this.cursors.right.isDown && this.cursors.down.isDown && (!this.cursors.left.isDown && !this.cursors.up.isDown)){
+        if (this.keyD.isDown && this.keyS.isDown && (!this.keyQ.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : -1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
@@ -326,7 +409,7 @@ export class MainCave extends Phaser.Scene{
             this.player.anims.play('right', true); 
         }
 
-        if (this.cursors.right.isDown && this.cursors.up.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown)){
+        if (this.keyD.isDown && this.keyZ.isDown && (!this.keyQ.isDown && !this.keyS.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
@@ -334,7 +417,7 @@ export class MainCave extends Phaser.Scene{
             this.player.anims.play('right', true); 
         }
 
-        if (this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.left.isDown && !this.cursors.up.isDown)){
+        if (this.keyS.isDown && (!this.keyD.isDown && !this.keyQ.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : -1};
             this.player.setVelocityX(0);
@@ -342,7 +425,7 @@ export class MainCave extends Phaser.Scene{
             this.player.anims.play('front',true);
         }
 
-        if (this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown)){
+        if (this.keyZ.isDown && (!this.keyD.isDown && !this.keyS.isDown && !this.keyQ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : 1};
             this.player.setVelocityX(0);
@@ -350,7 +433,7 @@ export class MainCave extends Phaser.Scene{
             this.player.anims.play('back',true);
         }
 
-        if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown){ 
+        if (!this.keyQ.isDown && !this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown){ 
             this.playerState.isMoving = false; 
             this.player.setVelocityX(0);
             this.player.setVelocityY(0); 
@@ -359,11 +442,13 @@ export class MainCave extends Phaser.Scene{
     }
 
     attack(){
+
         if (this.player.direction.x == 0 && this.player.direction.y == 1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackUpDown.y = (this.player.y) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
+            this.player.anims.play('hitUp', true); 
             this.player.setVelocityX(this.player.body.velocity.x/7);
             this.player.setVelocityY(this.player.body.velocity.y/7);
             this.time.delayedCall(387, () => {
@@ -373,9 +458,10 @@ export class MainCave extends Phaser.Scene{
         }
         else if (this.player.direction.x == 0 && this.player.direction.y == -1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/8;
+            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
+            this.player.anims.play('hitBot', true); 
             this.player.setVelocityX(this.player.body.velocity.x/7);
             this.player.setVelocityY(this.player.body.velocity.y/7);
             this.time.delayedCall(387, () => {
@@ -384,7 +470,7 @@ export class MainCave extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == 1 && this.player.direction.y == 0){
-            this.player.zoneAttackGaucheDroite.x = (this.player.x + 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackGaucheDroite.x = (this.player.x + 32) + this.player.body.velocity.x/12;
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
@@ -397,7 +483,7 @@ export class MainCave extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == -1 && this.player.direction.y == 0){
-            this.player.zoneAttackGaucheDroite.x = (this.player.x - 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackGaucheDroite.x = (this.player.x - 32) + this.player.body.velocity.x/12;
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
@@ -410,8 +496,8 @@ export class MainCave extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == -1 && this.player.direction.y == 1){
-            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitLeft', true);
@@ -423,8 +509,8 @@ export class MainCave extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == -1 && this.player.direction.y == -1){
-            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitLeft', true); 
@@ -436,8 +522,8 @@ export class MainCave extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == 1 && this.player.direction.y == 1){
-            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitRight', true); 
@@ -449,8 +535,8 @@ export class MainCave extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == 1 && this.player.direction.y == -1){
-            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitRight', true); 
@@ -475,6 +561,9 @@ export class MainCave extends Phaser.Scene{
     lootCoffre(zone, coffre){
         coffre.body.enable = false;
         coffre.alpha = 0;
+        if(coffre == this.coffreTemple0){
+            this.playerState.getCoffreTemple0 = true;
+        }
         this.dropGold(coffre.x,coffre.y,Math.floor((Math.random()*5)+10));
     }
 
@@ -482,8 +571,7 @@ export class MainCave extends Phaser.Scene{
         this.time.addEvent({        
             delay : nb,
             callback : () => {
-                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.02);
-                //this.physics.add.image(Math.floor((Math.random()*30)-5) + x, Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.02);
+                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.85);
             },
             repeat : nb
         })

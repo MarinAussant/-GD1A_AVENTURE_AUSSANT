@@ -36,9 +36,17 @@ export class Outdoor extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('persoIdle','assets/images/idle.png',
         { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitRight','assets/animations/hitRight.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitLeft','assets/animations/hitLeft.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitUp','assets/animations/hitUp.png',
+        { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('persoHitBot','assets/animations/hitBot.png',
+        { frameWidth: 32, frameHeight: 64 });
 
         this.load.image('ennemi',"assets/images/ennemi.png");
-        this.load.image('gold',"assets/images/gold.png");
+        this.load.image('gold',"assets/items/goldGround.png");
         this.load.image('shadow',"assets/images/shadow.png");
 
         this.load.image('coffreDevant',"assets/images/frontChest.png");
@@ -199,6 +207,7 @@ export class Outdoor extends Phaser.Scene{
         else if (this.entrance == "temple"){
             this.player = this.physics.add.sprite(3007, 3883, 'persoIdle').setScale(1);
         }
+        this.player.direction = {x:0,y:-1};
 
         this.playerState.isFalling = false;
         this.playerState.canMove = true;
@@ -217,14 +226,14 @@ export class Outdoor extends Phaser.Scene{
         // - ADD ... choses.... cool ? 
 
         this.physics.add.collider(this.player,this.coffres,this.collide, null, this);
-        this.physics.add.overlap(this.player,this.golds, this.getGold, null, this);
+        this.physics.add.overlap(this.shadow,this.golds, this.getGold, null, this);
         
 
         this.physics.add.overlap(this.player.zoneAttackUpDown, this.coffres, this.lootCoffre,null,this);
         this.physics.add.overlap(this.player.zoneAttackGaucheDroite, this.coffres, this.lootCoffre,null,this);
         this.physics.add.overlap(this.player.zoneAttackDiag, this.coffres, this.lootCoffre,null,this);
         
-        var rect = this.add.rectangle(this.player.x,this.player.y,35,48);
+        var rect = this.add.rectangle(this.player.x,this.player.y,35,54);
         this.extraCollide = this.physics.add.existing(rect);
         this.extraCollide.alpha = 0;
 
@@ -309,7 +318,7 @@ export class Outdoor extends Phaser.Scene{
         const Ext_FallOverLap = carteDuNiveau.createLayer("Ext_FallOverLap",tileset);
         Ext_FallOverLap.setCollisionByProperty({ fall: true },true);
         Ext_FallOverLap.alpha = 0;
-        //this.physics.add.collider(this.extraCollide, Ext_FallOverLap,this.playerFalling,null,this);
+        this.fallingCollider =this.physics.add.collider(this.extraCollide, Ext_FallOverLap,this.playerFalling,null,this);
         
         
 
@@ -374,6 +383,18 @@ export class Outdoor extends Phaser.Scene{
             frameRate: 33,
             repeat: 0
         });
+        this.anims.create({
+            key: 'hitUp',
+            frames: this.anims.generateFrameNumbers('persoHitUp', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'hitBot',
+            frames: this.anims.generateFrameNumbers('persoHitBot', {start:0,end:10}),
+            frameRate: 33,
+            repeat: 0
+        });
 
     }
     
@@ -383,12 +404,12 @@ export class Outdoor extends Phaser.Scene{
 
         // - SUIVI DE EXTRACOLLIDE
         
-        this.physics.moveTo(this.extraCollide,this.player.x,this.player.y+25,PLAYER_SPEED);
+        this.physics.moveTo(this.extraCollide,this.player.x,this.player.y+25,this.player.body.speed + 30);
 
-         // - SUIVI DE SHADOW
+        // - SUIVI DE SHADOW
 
-         this.shadow.body.position.x = this.player.x - 17;
-         this.shadow.body.position.y = this.player.y + 6;
+        this.shadow.body.position.x = this.player.x - 17;
+        this.shadow.body.position.y = this.player.y + 6;
 
         // - ATTAQUE
 
@@ -411,6 +432,7 @@ export class Outdoor extends Phaser.Scene{
 
         if (this.playerState.getBoots){
             if (Phaser.Input.Keyboard.JustDown(this.keySHIFT) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
+                this.fallingCollider.active = false;
                 this.playerState.canMove = false;
                 this.playerState.isPropulsing = true;
                 this.propulsing();
@@ -422,6 +444,7 @@ export class Outdoor extends Phaser.Scene{
                 this.player.setVelocityX(0);
                 this.player.setVelocityY(0); 
                 this.playerState.canMove = true;
+                this.fallingCollider.active = true;
             }
         }
 
@@ -506,7 +529,7 @@ export class Outdoor extends Phaser.Scene{
 			})
         }
         //PROPULSA CAVE EXIT
-        else if (this.canOut && (this.player.body.position.x <= 2895  && this.player.body.position.x >= 2875 && this.player.body.position.y <= 1691 && this.player.body.position.y >= 1637 )){
+        else if (this.canOut && (this.player.body.position.x <= 2895  && this.player.body.position.x >= 2875 && this.player.body.position.y <= 1691 && this.player.body.position.y >= 1630 )){
             
             this.canOut = false;
             this.cameras.main.fadeOut(400, 35, 22, 21);
@@ -633,7 +656,7 @@ export class Outdoor extends Phaser.Scene{
 
         // - DEPLACEMENT ET ANIMATION
 
-        if (this.cursors.left.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){
+        if (this.keyQ.isDown && (!this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = {x : -1, y : 0};
             this.player.setVelocityX(-PLAYER_SPEED); 
@@ -641,7 +664,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.anims.play('left', true); 
         }
 
-        if (this.cursors.left.isDown && this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown)){
+        if (this.keyQ.isDown && this.keyZ.isDown && (!this.keyD.isDown && !this.keyS.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : 1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2)/2); 
@@ -649,7 +672,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.anims.play('left', true); 
         }
 
-        if (this.cursors.left.isDown && this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.up.isDown)){
+        if (this.keyQ.isDown && this.keyS.isDown && (!this.keyD.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : -1};
             this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2/2));
@@ -658,7 +681,7 @@ export class Outdoor extends Phaser.Scene{
         }
 
 
-        if (this.cursors.right.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown)){ //sinon si la touche droite est appuyée
+        if (this.keyD.isDown && (!this.keyQ.isDown && !this.keyS.isDown && !this.keyZ.isDown)){ //sinon si la touche droite est appuyée
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 0};
             this.player.setVelocityX(PLAYER_SPEED);
@@ -666,7 +689,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.anims.play('right', true); 
         }
 
-        if (this.cursors.right.isDown && this.cursors.down.isDown && (!this.cursors.left.isDown && !this.cursors.up.isDown)){
+        if (this.keyD.isDown && this.keyS.isDown && (!this.keyQ.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : -1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
@@ -674,7 +697,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.anims.play('right', true); 
         }
 
-        if (this.cursors.right.isDown && this.cursors.up.isDown && (!this.cursors.left.isDown && !this.cursors.down.isDown)){
+        if (this.keyD.isDown && this.keyZ.isDown && (!this.keyQ.isDown && !this.keyS.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 1};
             this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
@@ -682,7 +705,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.anims.play('right', true); 
         }
 
-        if (this.cursors.down.isDown && (!this.cursors.right.isDown && !this.cursors.left.isDown && !this.cursors.up.isDown)){
+        if (this.keyS.isDown && (!this.keyD.isDown && !this.keyQ.isDown && !this.keyZ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : -1};
             this.player.setVelocityX(0);
@@ -690,7 +713,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.anims.play('front',true);
         }
 
-        if (this.cursors.up.isDown && (!this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.left.isDown)){
+        if (this.keyZ.isDown && (!this.keyD.isDown && !this.keyS.isDown && !this.keyQ.isDown)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : 1};
             this.player.setVelocityX(0);
@@ -698,7 +721,7 @@ export class Outdoor extends Phaser.Scene{
             this.player.anims.play('back',true);
         }
 
-        if (!this.cursors.left.isDown && !this.cursors.right.isDown && !this.cursors.down.isDown && !this.cursors.up.isDown){ 
+        if (!this.keyQ.isDown && !this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown){ 
             this.playerState.isMoving = false; 
             this.player.setVelocityX(0);
             this.player.setVelocityY(0); 
@@ -707,11 +730,13 @@ export class Outdoor extends Phaser.Scene{
     }
 
     attack(){
+
         if (this.player.direction.x == 0 && this.player.direction.y == 1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackUpDown.y = (this.player.y) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
+            this.player.anims.play('hitUp', true); 
             this.player.setVelocityX(this.player.body.velocity.x/7);
             this.player.setVelocityY(this.player.body.velocity.y/7);
             this.time.delayedCall(387, () => {
@@ -721,9 +746,10 @@ export class Outdoor extends Phaser.Scene{
         }
         else if (this.player.direction.x == 0 && this.player.direction.y == -1){
             this.player.zoneAttackUpDown.x = this.player.x;
-            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/8;
+            this.player.zoneAttackUpDown.y = (this.player.y + 48) + this.player.body.velocity.y/12;
             this.player.zoneAttackUpDown.body.enable = true;
             this.playerState.canMove = false;
+            this.player.anims.play('hitBot', true); 
             this.player.setVelocityX(this.player.body.velocity.x/7);
             this.player.setVelocityY(this.player.body.velocity.y/7);
             this.time.delayedCall(387, () => {
@@ -732,7 +758,7 @@ export class Outdoor extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == 1 && this.player.direction.y == 0){
-            this.player.zoneAttackGaucheDroite.x = (this.player.x + 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackGaucheDroite.x = (this.player.x + 32) + this.player.body.velocity.x/12;
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
@@ -745,7 +771,7 @@ export class Outdoor extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == -1 && this.player.direction.y == 0){
-            this.player.zoneAttackGaucheDroite.x = (this.player.x - 32) + this.player.body.velocity.x/8;
+            this.player.zoneAttackGaucheDroite.x = (this.player.x - 32) + this.player.body.velocity.x/12;
             this.player.zoneAttackGaucheDroite.y = this.player.y;
             this.player.zoneAttackGaucheDroite.body.enable = true;
             this.playerState.canMove = false;
@@ -758,8 +784,8 @@ export class Outdoor extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == -1 && this.player.direction.y == 1){
-            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitLeft', true);
@@ -771,8 +797,8 @@ export class Outdoor extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == -1 && this.player.direction.y == -1){
-            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x - 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitLeft', true); 
@@ -784,8 +810,8 @@ export class Outdoor extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == 1 && this.player.direction.y == 1){
-            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y - 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitRight', true); 
@@ -797,8 +823,8 @@ export class Outdoor extends Phaser.Scene{
             })
         }
         else if (this.player.direction.x == 1 && this.player.direction.y == -1){
-            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/8;
-            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/8;
+            this.player.zoneAttackDiag.x = (this.player.x + 32) + this.player.body.velocity.x/12;
+            this.player.zoneAttackDiag.y = (this.player.y + 32) + this.player.body.velocity.y/12;
             this.player.zoneAttackDiag.body.enable = true;
             this.playerState.canMove = false;
             this.player.anims.play('hitRight', true); 
@@ -885,8 +911,7 @@ export class Outdoor extends Phaser.Scene{
         this.time.addEvent({        
             delay : nb,
             callback : () => {
-                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.02);
-                //this.physics.add.image(Math.floor((Math.random()*30)-5) + x, Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.02);
+                this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.85);
             },
             repeat : nb
         })

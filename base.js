@@ -24,7 +24,7 @@ var config =
         arcade:
         {
             gravity: { y: 0 },
-            debug: false
+            debug: true
         }
     },
     scene: [ Menu, MainCave, Outdoor, Secret1, Secret2, Secret3, CavePropulsa, SortieTemple, Caveau1, Caveau2],
