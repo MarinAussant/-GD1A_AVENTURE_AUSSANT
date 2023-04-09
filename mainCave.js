@@ -28,6 +28,11 @@ export class MainCave extends Phaser.Scene{
 
     preload(){
 
+        // UI
+        this.load.spritesheet('uiLife','assets/ui/uiLife.png',
+        { frameWidth: 1920, frameHeight: 1080 });
+        this.load.image('uiInvGold',"assets/ui/uiInvGold.png");
+
         // Srritesheet Perso Principal 
 
         // Déplacement
@@ -259,9 +264,43 @@ export class MainCave extends Phaser.Scene{
         this.cameras.main.startFollow(this.player);
         this.cameras.main.setDeadzone(50,50);
         this.cameras.main.setBounds(0,0,4960,6400);
-        this.cameras.main.setZoom(3);
+        this.cameras.main.setZoom(2.5);
+
+        // - UI
+
+        this.uiLife = this.add.sprite(1920/3.35,1080/3.35, 'uiLife').setOrigin(0,0).setScrollFactor(0).setScale(0.51);
+        this.add.image(1920/3.35,1080/3.35,'uiInvGold').setOrigin(0,0).setScrollFactor(0).setScale(0.51);
+        this.textGold = this.add.text(735,356,'000x',{ fontSize:'10px',fill:'#f5ffff'}).setScrollFactor(0);
 
         // - ANIMATIONS
+
+        // Ui
+
+        this.anims.create({
+            key: 'life5',
+            frames: this.anims.generateFrameNumbers('uiLife', { frames: [0] }),
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'life4',
+            frames: this.anims.generateFrameNumbers('uiLife', { frames: [1] }),
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'life3',
+            frames: this.anims.generateFrameNumbers('uiLife', { frames: [2] }),
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'life2',
+            frames: this.anims.generateFrameNumbers('uiLife', { frames: [3] }),
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'life1',
+            frames: this.anims.generateFrameNumbers('uiLife', { frames: [4] }),
+            repeat: 0
+        });
 
         // Animations Perso
         this.anims.create({
@@ -376,6 +415,22 @@ export class MainCave extends Phaser.Scene{
     
     update(){
         //console.log(this.player.body.position);
+
+        if(this.playerState.hp == 5){
+            this.uiLife.anims.play("life5",true);
+        }
+        if(this.playerState.hp == 4){
+            this.uiLife.anims.play("life4",true);
+        }
+        if(this.playerState.hp == 3){
+            this.uiLife.anims.play("life3",true);
+        }
+        if(this.playerState.hp == 2){
+            this.uiLife.anims.play("life2",true);
+        }
+        if(this.playerState.hp == 1){
+            this.uiLife.anims.play("life1",true);
+        }
 
         // - SUIVI DE SHADOW
 
@@ -685,6 +740,7 @@ export class MainCave extends Phaser.Scene{
     getGold(player, gold){
        
         this.playerState.gold += 1;
+        this.textGold.text = this.playerState.gold + "x";
         gold.body.enable = false;
         gold.alpha = 0;
             

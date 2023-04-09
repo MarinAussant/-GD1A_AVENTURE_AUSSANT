@@ -14,7 +14,6 @@ var config =
 {
     type: Phaser.AUTO,
 	scale: {
-        
         width: 4960, 
         height: 6400
     },

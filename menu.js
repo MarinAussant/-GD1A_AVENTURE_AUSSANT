@@ -7,31 +7,30 @@ export class Menu extends Phaser.Scene{
     }
 
     preload(){
-        this.load.image('background',"assets/ui/background.png");
-        this.load.image('play',"assets/ui/play.png");
+        this.load.image('background',"assets/ui/menu.png");
     }
     
     create(){
 
-        this.add.image(0, 0, 'background').setOrigin(0,0).setScale(0.8);
-        var play = this.add.image(400, 100, 'play').setOrigin(0,0).setScale(0.15).setInteractive();
+        this.add.image(0, 0, 'background').setOrigin(0,0).setScale(1);
 
-        play.once('pointerup',this.loadGame,this);
-
+        this.input.on('pointerdown', this.loadGame,this);
+    
     }
     
     
     update(){
-        
-
     
     }
 
     loadGame(){
-        this.cameras.main.fadeOut(2000, 35, 22, 21);
-                this.time.delayedCall(2000, () => {
-					this.scene.start('MainCave');
-                })
+
+        if(this.input.x >= 750 && this.input.y >= 650 && this.input.x <= 1200 && this.input.y <= 1030 ){
+            this.cameras.main.fadeOut(1000, 35, 22, 21);
+            this.time.delayedCall(1000, () => {
+				this.scene.start('MainCave');
+            })
+        }
     }
 
 
