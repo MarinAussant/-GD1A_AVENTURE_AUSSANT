@@ -11,7 +11,7 @@ import { Caveau2 as Caveau2 } from "./caveau2.js";
 import { DonjonSword as DonjonSword } from "./donjonSword.js";
 import { DonjonCape as DonjonCape } from "./donjonCape.js";
 import { DonjonBracelet as DonjonBracelet } from "./donjonBracelet.js";
-//import { DonjonBoot as DonjonBoot } from "./donjonBoot.js";
+import { DonjonPropulsa as DonjonPropulsa } from "./donjonPropulsa.js";
 
 
 var config =
@@ -31,7 +31,7 @@ var config =
         }
     },
     input:{gamepad:true},
-    scene: [ Menu, MainCave, Outdoor, Secret1, Secret2, Secret3, CavePropulsa, SortieTemple, Caveau1, Caveau2, DonjonSword, DonjonCape, DonjonBracelet],
+    scene: [ Menu, MainCave, Outdoor, Secret1, Secret2, Secret3, CavePropulsa, SortieTemple, Caveau1, Caveau2, DonjonSword, DonjonCape, DonjonBracelet,DonjonPropulsa],
     pixelArt: true,
     input:
     {

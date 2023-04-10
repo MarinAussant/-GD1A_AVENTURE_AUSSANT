@@ -184,17 +184,17 @@ export class MainCave extends Phaser.Scene{
                 getCoffreFinal3 : false,
 
                 unlockSortieTemple : false, 
-                unlockMainCave : true,
+                unlockMainCave : false,
                 unlockPropulsa : false,
                 unlockSecret1 : false,
                 unlockSecret2 : false,
                 unlockSecret3 : false,
                 unlockCaveau2 : false,
 
-                getSword : true,
-                getCape : true,
+                getSword : false,
+                getCape : false,
                 getBracelet : false,
-                getBoots : true,
+                getBoots : false,
 
             }
         }

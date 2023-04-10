@@ -9,6 +9,7 @@ export class Outdoor extends Phaser.Scene{
         this.player;
         this.click;
         this.controller = false;
+        this.textFin;
         
     }
 
@@ -101,6 +102,8 @@ export class Outdoor extends Phaser.Scene{
     
     create(){
 
+        this.finalDoor = false;
+
         const carteDuNiveau = this.add.tilemap("carte");
 
         // Chargement du jeu de tuile
@@ -164,6 +167,16 @@ export class Outdoor extends Phaser.Scene{
             this.Ext_WallClosePorte_Caveau2 = carteDuNiveau.createLayer("Ext_WallClosePorte_Caveau2",tileset);
             this.Ext_ClosePorte_Caveau2 = carteDuNiveau.createLayer("Ext_ClosePorte_Caveau2",tileset);
             this.Ext_ClosePorte_Caveau2.setCollisionByProperty({ collide: true });
+        }
+        if(this.playerState.gold >= 500){
+            this.finalDoor = true;  
+            this.Ext_FinalOpenPorte = carteDuNiveau.createLayer("Ext_FinalOpenPorte",tileset);
+        }
+        else{
+            this.finalDoor = false;  
+            this.Ext_FinalOpenPorte = carteDuNiveau.createLayer("Ext_FinalOpenPorte",tileset);
+            this.Ext_FinalClosePorte = carteDuNiveau.createLayer("Ext_FinalClosePorte",tileset);
+            this.Ext_FinalClosePorte.setCollisionByProperty({ collide: true });
         }
         
         this.coffres = this.physics.add.group({allowGravity: false,immovable : true});
@@ -397,6 +410,11 @@ export class Outdoor extends Phaser.Scene{
         this.Ext_Collide.alpha = 0;
         this.physics.add.collider(this.player, this.Ext_Collide, this.collide, null, this);
         this.physics.add.collider(this.momies, this.Ext_Collide);
+
+        if(!this.finalDoor){
+            this.finalCollider = this.physics.add.collider(this.player,this.Ext_FinalClosePorte,this.collide, null, this);
+        }
+        
         
 
         // OVERLAP FALLING EXTERIEUR
@@ -653,6 +671,7 @@ export class Outdoor extends Phaser.Scene{
 
         if (this.playerState.getBoots){
             if ((Phaser.Input.Keyboard.JustDown(this.keySHIFT) || this.controller.A) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
+                this.fallingCollider.active = false;
                 this.playerState.canMove = false;
                 this.playerState.isPropulsing = true;
                 this.propulsing();
@@ -664,6 +683,7 @@ export class Outdoor extends Phaser.Scene{
                 this.player.setVelocityX(0);
                 this.player.setVelocityY(0); 
                 this.playerState.canMove = true;
+                this.fallingCollider.active = true;
             }
         }
 
@@ -825,6 +845,40 @@ export class Outdoor extends Phaser.Scene{
 					this.scene.start('DonjonBracelet', {entrance: "outdoor", playerState : this.playerState});
 			})
         }
+        //FIN
+        else if (this.canOut && (this.player.body.position.x <= 1408  && this.player.body.position.x >= 1312 && this.player.body.position.y <= 128 && this.player.body.position.y >= 96 )){
+            
+            this.canOut = false;
+            this.cameras.main.fadeOut(8000, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+            
+            this.tutoText = this.add.text(750,450,"You conquer your lands !",{ fontSize:'40px',fill:'#fffeaa', fontStyle:"bold"}).setScrollFactor(0);
+			this.time.delayedCall(8000, () => {
+					this.scene.pause();
+			})
+        }
+
+        // TRIGGERS FIN JEU
+        if (!this.finalDoor && (this.player.body.position.x <= 1504  && this.player.body.position.x >= 1216 && this.player.body.position.y <= 352 && this.player.body.position.y >= 128 )){
+            console.log("yoyo");
+            if(this.textFin){
+                this.textFin.setText("Come back with 500 coins...");
+            }
+            else{
+                this.textFin = this.add.text(750,450,"Come back with 500 coins...",{ fontSize:'40px',fill:'#ff4967', fontStyle:"bold"}).setScrollFactor(0);
+            }
+
+        }
+        else {
+            if(this.textFin){
+                this.textFin.setText("");
+            }
+            else{
+                this.textFin = this.add.text(750,450,"",{ fontSize:'40px',fill:'#ff4967', fontStyle:"bold"}).setScrollFactor(0);
+            }
+        }
 
         // TRIGGERS BRACELET
         if (this.playerState.getBracelet && Phaser.Input.Keyboard.JustDown(this.keyA) && !this.playerState.isAttacking && !this.playerState.isPropulsing){
@@ -967,6 +1021,16 @@ export class Outdoor extends Phaser.Scene{
         }
 
         this.moveMomies();
+
+        if(this.playerState.gold >=500 && !this.finalDoor){
+            this.finalCollider.active = false;
+            this.finalDoor = true;
+            this.Ext_FinalClosePorte.alpha = 0;
+        }
+
+        if(this.player.y > 5152){
+            this.playerFalling();
+        }
 
     }
 

@@ -1,17 +1,16 @@
 const PLAYER_SPEED = 200;
 const MOMIES_SPEED = 25;
-export class DonjonBracelet extends Phaser.Scene{
+export class DonjonPropulsa extends Phaser.Scene{
 
     constructor(){
 
-        super("DonjonBracelet");
+        super("DonjonPropulsa");
         this.player;
         this.cursors;
         this.canOut = true;
         this.playerState; 
         this.controller = false;
         this.tutoText;
-        this.bracelet;
     }
 
     init(data)
@@ -93,20 +92,19 @@ export class DonjonBracelet extends Phaser.Scene{
     
     create(){
 
-        this.spawnBracelet = false;
-        this.doorsOpen = false;
-
         const carteDuNiveau = this.add.tilemap("carte");
 
         // - TILESET
         const tileset = carteDuNiveau.addTilesetImage("placeHolder","Phaser_tuilesdejeu");
 
         // - DECORS DERRIERE
-        const DonjonBracelet_Ground = carteDuNiveau.createLayer("DonjonBracelet_Ground",tileset);
-        const DonjonBracelet_Back = carteDuNiveau.createLayer("DonjonBracelet_Back",tileset);
-        this.DonjonBracelet_CloseWall = carteDuNiveau.createLayer("DonjonBracelet_CloseWall",tileset);
-        this.DonjonBracelet_ClosePorte = carteDuNiveau.createLayer("DonjonBracelet_ClosePorte",tileset);
-        this.DonjonBracelet_ClosePorte.setCollisionByProperty({ collide: true }); 
+        const DonjonPropulsa_FallSecond = carteDuNiveau.createLayer("DonjonPropulsa_FallSecond",tileset);
+        const DonjonPropulsa_FallBlack = carteDuNiveau.createLayer("DonjonPropulsa_FallBlack",tileset);
+        const DonjonPropulsa_FallLightBlack = carteDuNiveau.createLayer("DonjonPropulsa_FallLightBlack",tileset);
+        const DonjonPropulsa_FallLight = carteDuNiveau.createLayer("DonjonPropulsa_FallLight",tileset);
+        const DonjonPropulsa_FallFirst = carteDuNiveau.createLayer("DonjonPropulsa_FallFirst",tileset);
+        const DonjonPropulsa_Ground = carteDuNiveau.createLayer("DonjonPropulsa_Ground",tileset);
+        const DonjonPropulsa_Back = carteDuNiveau.createLayer("DonjonPropulsa_Back",tileset);
 
         // - PLAYER 
 
@@ -117,10 +115,11 @@ export class DonjonBracelet extends Phaser.Scene{
         
         this.windForce = {x:0,y:0};
 
-        this.player = this.physics.add.sprite(1344, 3040, 'perso').setScale(1);
+        this.player = this.physics.add.sprite(2944, 1952, 'perso').setScale(1);
         this.player.direction = {x:-1,y:0};
         this.playerState.canMove = true;
         this.playerState.isPropulsing = false;
+        this.playerState.isFalling = false;
         this.player.setSize(15,3).setOffset(8,61);
         this.player.setCollideWorldBounds(true);
 
@@ -132,8 +131,8 @@ export class DonjonBracelet extends Phaser.Scene{
         this.player.zoneAttackDiag.body.enable = false;
 
         this.momies = this.physics.add.group();
-        const DonjonBracelet_Momies = carteDuNiveau.getObjectLayer('DonjonBracelet_Momies');
-        DonjonBracelet_Momies.objects.forEach(eachMomie => {
+        const DonjonPropulsa_Momies = carteDuNiveau.getObjectLayer('DonjonPropulsa_Momies');
+        DonjonPropulsa_Momies.objects.forEach(eachMomie => {
             this.momies.create(eachMomie.x+16,  eachMomie.y-16, "momieBot").body.setAllowGravity(false);
         });
         this.momies.children.each(function (momie) {
@@ -157,22 +156,33 @@ export class DonjonBracelet extends Phaser.Scene{
         this.physics.add.overlap(this.player.zoneAttackGaucheDroite, this.momies, this.hitEnnemi,null,this);
         this.physics.add.overlap(this.player.zoneAttackDiag, this.momies, this.hitEnnemi,null,this);
 
+        var rect = this.add.rectangle(this.player.x,this.player.y,35,54);
+        this.extraCollide = this.physics.add.existing(rect);
+        this.extraCollide.alpha = 0;
+
         // - DECORS DEVANT
-        this.DonjonBracelet_OpenWall = carteDuNiveau.createLayer("DonjonBracelet_OpenWall",tileset);
-        this.DonjonBracelet_OpenPorte = carteDuNiveau.createLayer("DonjonBracelet_OpenPorte",tileset);
+        const DonjonPropulsa_Front = carteDuNiveau.createLayer("DonjonPropulsa_Front",tileset);
 
-        this.DonjonBracelet_OpenWall.alpha = 0;
-        this.DonjonBracelet_OpenPorte.alpha = 0;
 
-        const DonjonBracelet_Front = carteDuNiveau.createLayer("DonjonBracelet_Front",tileset);
+        if (!this.playerState.getBoots){
+            this.boots= this.physics.add.image(2944+16,256+16,"boot").setScale(0.5);
+        }
+
+        this.physics.add.collider(this.shadow,this.boots,this.haveBoot,null,this);
 
         // - COLLISIONS
-        const DonjonBracelet_Collide = carteDuNiveau.createLayer("DonjonBracelet_Collide",tileset);
-        DonjonBracelet_Collide.alpha = 0;
-        DonjonBracelet_Collide.setCollisionByProperty({ collide: true }); 
-        this.physics.add.collider(this.player, DonjonBracelet_Collide, this.collide, null,this);
-        this.physics.add.collider(this.momies, DonjonBracelet_Collide);
-        this.collideWall = this.physics.add.collider(this.player, this.DonjonBracelet_ClosePorte, this.collide, null,this);
+        const DonjonPropulsa_Collide = carteDuNiveau.createLayer("DonjonPropulsa_Collide",tileset);
+        DonjonPropulsa_Collide.alpha = 0;
+        DonjonPropulsa_Collide.setCollisionByProperty({ collide: true }); 
+        this.physics.add.collider(this.player, DonjonPropulsa_Collide, this.collide, null,this);
+        this.physics.add.collider(this.momies, DonjonPropulsa_Collide);
+
+        // OVERLAP FALLING EXTERIEUR
+        const DonjonPropulsa_FallOverlap = carteDuNiveau.createLayer("DonjonPropulsa_FallOverlap",tileset);
+        DonjonPropulsa_FallOverlap.setCollisionByProperty({ fall: true },true);
+        DonjonPropulsa_FallOverlap.alpha = 0;
+        this.fallingCollider =this.physics.add.collider(this.extraCollide, DonjonPropulsa_FallOverlap,this.playerFalling,null,this);
+        this.physics.add.collider(this.momies,DonjonPropulsa_FallOverlap);
 
         // - CONTRÔLE CLAVIER
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -375,6 +385,10 @@ export class DonjonBracelet extends Phaser.Scene{
         this.shadow.body.position.x = this.player.x - 17;
         this.shadow.body.position.y = this.player.y + 6;
 
+        // - SUIVI DE EXTRACOLLIDE
+        
+        this.physics.moveTo(this.extraCollide,this.player.x,this.player.y+25,this.player.body.speed + 30);
+
         // - ATTAQUE
 
         if (this.playerState.getSword){
@@ -411,6 +425,8 @@ export class DonjonBracelet extends Phaser.Scene{
 
         if (this.playerState.getBoots){
             if ((Phaser.Input.Keyboard.JustDown(this.keySHIFT) || this.controller.A) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
+                this.fallingCollider.active = false;
+                this.tutoText.setText("");
                 this.playerState.canMove = false;
                 this.playerState.isPropulsing = true;
                 this.propulsing();
@@ -422,44 +438,27 @@ export class DonjonBracelet extends Phaser.Scene{
                 this.player.setVelocityX(0);
                 this.player.setVelocityY(0); 
                 this.playerState.canMove = true;
+                this.fallingCollider.active = true;
             }
         }
 
         // TRIGGERS BRACELET
         if (this.playerState.getBracelet && Phaser.Input.Keyboard.JustDown(this.keyA) && !this.playerState.isAttacking && !this.playerState.isPropulsing){
+
             this.player.setVelocityX(0);
             this.player.setVelocityY(0); 
             this.playerState.canMove = false;
-            this.tutoText.setText("");
             this.player.anims.play("bracelet",true);
             this.cameras.main.fadeOut(300, 184, 231, 249);
             this.time.delayedCall(300, () => {
                 this.cameras.main.fadeIn(1000, 184, 231, 249);
                 this.playerState.canMove = true;
             })
-
-            if((this.doorsOpen == false) && this.player.body.position.x <= 1472  && this.player.body.position.x >= 1248 && this.player.body.position.y <= 1472 && this.player.body.position.y >= 1152 ){
-                this.doorsOpen = true;
-                this.cameras.main.shake(1500, 0.0002);
-                this.tweens.add({
-                    targets: [this.DonjonBracelet_ClosePorte,this.DonjonBracelet_CloseWall],
-                    alpha: 0,
-                    duration: 3500,
-                    ease: 'Power2'
-                });
-                this.tweens.add({
-                    targets: [this.DonjonBracelet_OpenPorte,this.DonjonBracelet_OpenWall],
-                    alpha: 1,
-                    duration: 2000,
-                    ease: 'Power2'
-                });
-                this.collideWall.active = false;
-            }
         }
 
         // - TRIGGERS
 
-        if (this.canOut && (this.player.body.position.x >= 1312 && this.player.body.position.x <= 1408 && this.player.body.position.y <= 1152)){
+        if (this.canOut && (this.player.body.position.x >= 2880 && this.player.body.position.x <= 3008 && this.player.body.position.y >= 2016)){
             this.canOut = false;
 		    this.cameras.main.fadeOut(400, 35, 22, 21);
             this.playerState.canMove = false;
@@ -467,19 +466,7 @@ export class DonjonBracelet extends Phaser.Scene{
             this.player.setVelocityY(this.player.body.velocity.y/5); 
 
 			this.time.delayedCall(500, () => {
-					this.scene.start('SortieTemple', {entrance: "donjon", playerState : this.playerState});
-			})
-
-        }
-        else if (this.canOut && (this.player.body.position.x >= 1312 && this.player.body.position.x <= 1408 && this.player.body.position.y >= 3104)){
-            this.canOut = false;
-		    this.cameras.main.fadeOut(400, 255, 254, 170);
-            this.playerState.canMove = false;
-            this.player.setVelocityX(this.player.body.velocity.x/5);
-            this.player.setVelocityY(this.player.body.velocity.y/5); 
-
-			this.time.delayedCall(500, () => {
-					this.scene.start('Outdoor', {entrance: "donjonBracelet", playerState : this.playerState});
+					this.scene.start('CavePropulsa', {entrance: "donjon", playerState : this.playerState});
 			})
 
         }
@@ -491,15 +478,6 @@ export class DonjonBracelet extends Phaser.Scene{
         }
 
         this.moveMomies();
-
-        if (!this.playerState.getBracelet && !this.spawnBracelet){
-            if (this.momies.countActive() <= 0){
-                this.spawnBracelet = true;
-                this.bracelet = this.physics.add.image(1344+16,1376+16,"braceletInv").setScale(0.5);
-                this.physics.add.collider(this.shadow,this.bracelet,this.haveBracelet,null,this);
-            }
-            
-        }
     
     }
 
@@ -799,6 +777,27 @@ export class DonjonBracelet extends Phaser.Scene{
         else this.playerState.isColliding = false;
     }
 
+    playerFalling(){
+        if (this.playerState.isFalling == false){
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/10);
+            this.player.setVelocityY(this.player.body.velocity.y/10); 
+            this.tweens.add({
+                targets:this.player,
+                angle:45,
+                scaleX:0,
+                scaleY:0,
+                repeat:0,
+                ease: 'Sine.easeIn'
+            })
+            this.time.delayedCall(1000, () => {
+                this.scene.start('DonjonPropulsa', {entrance: this.entrance, playerState : this.playerState});
+            })
+        }
+
+        this.playerState.isFalling = true;
+    }
+
     moveMomies(){
         this.momies.children.each(function (momie) {
 
@@ -924,13 +923,11 @@ export class DonjonBracelet extends Phaser.Scene{
         
     }
 
-    haveBracelet(shadow,sword){
-        this.playerState.getBracelet = true;
-        this.add.image(600,612,"braceletInv").setOrigin(0,0).setScrollFactor(0).setScale(0.75);
-        this.bracelet.alpha = 0;
-        this.bracelet.destroy();
-        this.player.setVelocityX(0);
-        this.player.setVelocityY(0);
-        this.tutoText = this.add.text(750,450,"'A' to open doors !",{ fontSize:'40px',fill:'#fffeaa', fontStyle:"bold"}).setScrollFactor(0);
+    haveBoot(shadow,sword){
+        this.playerState.getBoots = true;
+        this.add.image(599,690,"boot").setOrigin(0,0).setScrollFactor(0).setScale(0.75);
+        this.boots.alpha = 0;
+        this.boots.destroy();
+        this.tutoText = this.add.text(750,450,"'SHIFT' to propulse !",{ fontSize:'40px',fill:'#fffeaa', fontStyle:"bold"}).setScrollFactor(0);
     }
 }

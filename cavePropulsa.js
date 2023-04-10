@@ -122,6 +122,10 @@ export class CavePropulsa extends Phaser.Scene{
             this.player = this.physics.add.sprite(2955, 1644, 'perso').setScale(1);
             this.player.direction = {x:0,y:-1};
         }
+        else if (this.entrance == "donjon"){
+            this.player = this.physics.add.sprite(3744, 2240, 'perso').setScale(1);
+            this.player.direction = {x:0,y:-1};
+        }
         
         this.playerState.isFalling = false;
         this.playerState.canMove = true;
@@ -374,12 +378,12 @@ export class CavePropulsa extends Phaser.Scene{
                 }
             }
         }
-
         
         // - PROPULSA
 
         if (this.playerState.getBoots){
             if ((Phaser.Input.Keyboard.JustDown(this.keySHIFT) || this.controller.A) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
+                this.fallingCollider.active = false;
                 this.playerState.canMove = false;
                 this.playerState.isPropulsing = true;
                 this.propulsing();
@@ -391,6 +395,7 @@ export class CavePropulsa extends Phaser.Scene{
                 this.player.setVelocityX(0);
                 this.player.setVelocityY(0); 
                 this.playerState.canMove = true;
+                this.fallingCollider.active = true;
             }
         }
 
@@ -431,6 +436,18 @@ export class CavePropulsa extends Phaser.Scene{
 
 			this.time.delayedCall(500, () => {
 					this.scene.start('Outdoor', {entrance: "propulsaExit", playerState : this.playerState});
+			})
+
+        }
+        else if (this.canOut && (this.player.body.position.x <= 3808 && this.player.body.position.x >= 3712 && this.player.body.position.y <= 2176 )){
+            this.canOut = false;
+		    this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+
+			this.time.delayedCall(500, () => {
+					this.scene.start('DonjonPropulsa', {entrance: "propulsaCave", playerState : this.playerState});
 			})
 
         }
@@ -696,6 +713,27 @@ export class CavePropulsa extends Phaser.Scene{
             if (this.player.direction.y == -1) this.player.anims.play("propulsaBot",true);
             else this.player.anims.play("propulsaTop",true)
         }
+    }
+
+    playerFalling(){
+        if (this.playerState.isFalling == false){
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/10);
+            this.player.setVelocityY(this.player.body.velocity.y/10); 
+            this.tweens.add({
+                targets:this.player,
+                angle:45,
+                scaleX:0,
+                scaleY:0,
+                repeat:0,
+                ease: 'Sine.easeIn'
+            })
+            this.time.delayedCall(1000, () => {
+                this.scene.start('CavePropulsa', {entrance: this.entrance, playerState : this.playerState});
+            })
+        }
+
+        this.playerState.isFalling = true;
     }
 
     lootCoffre(zone, coffre){
