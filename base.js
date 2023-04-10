@@ -8,6 +8,10 @@ import { CavePropulsa as CavePropulsa } from "./cavePropulsa.js";
 import { SortieTemple as SortieTemple } from "./sortieTemple.js";
 import { Caveau1 as Caveau1 } from "./caveau1.js";
 import { Caveau2 as Caveau2 } from "./caveau2.js";
+import { DonjonSword as DonjonSword } from "./donjonSword.js";
+import { DonjonCape as DonjonCape } from "./donjonCape.js";
+import { DonjonBracelet as DonjonBracelet } from "./donjonBracelet.js";
+//import { DonjonBoot as DonjonBoot } from "./donjonBoot.js";
 
 
 var config =
@@ -23,10 +27,11 @@ var config =
         arcade:
         {
             gravity: { y: 0 },
-            debug: true
+            debug: false
         }
     },
-    scene: [ Menu, MainCave, Outdoor, Secret1, Secret2, Secret3, CavePropulsa, SortieTemple, Caveau1, Caveau2],
+    input:{gamepad:true},
+    scene: [ Menu, MainCave, Outdoor, Secret1, Secret2, Secret3, CavePropulsa, SortieTemple, Caveau1, Caveau2, DonjonSword, DonjonCape, DonjonBracelet],
     pixelArt: true,
     input:
     {

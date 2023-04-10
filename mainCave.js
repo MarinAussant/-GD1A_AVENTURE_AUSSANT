@@ -10,6 +10,7 @@ export class MainCave extends Phaser.Scene{
         this.canOut = true;
         this.playerState; 
         this.firstLoad = true;
+        this.controller = false;
 
     }
 
@@ -17,7 +18,7 @@ export class MainCave extends Phaser.Scene{
     {
         this.entrance = data.entrance;
         this.playerState = data.playerState;
-		if (this.entrance == "main" || this.entrance == "other"){
+		if (this.entrance == "main" || this.entrance == "other" ||this.entrance == "donjonSword"){
 			this.cameras.main.fadeIn(500, 35, 22, 21);
         }
 		else {
@@ -32,6 +33,10 @@ export class MainCave extends Phaser.Scene{
         this.load.spritesheet('uiLife','assets/ui/uiLife.png',
         { frameWidth: 1920, frameHeight: 1080 });
         this.load.image('uiInvGold',"assets/ui/uiInvGold.png");
+        this.load.image('sword',"assets/items/cimeterre.png");
+        this.load.image('cape',"assets/items/cape.png");
+        this.load.image('braceletInv',"assets/items/bracelet.png");
+        this.load.image('boot',"assets/items/boot.png");
 
         // Srritesheet Perso Principal 
 
@@ -64,6 +69,9 @@ export class MainCave extends Phaser.Scene{
         { frameWidth: 32, frameHeight: 64 });
         this.load.spritesheet('propulsaTop','assets/animations/propulsaTop.png',
         { frameWidth: 32, frameHeight: 64 });
+        // Bracelet
+        this.load.spritesheet('bracelet','assets/animations/bracelet.png',
+        { frameWidth: 32, frameHeight: 64 });
 
         // Spritesheet Momies
         this.load.spritesheet('momieRight','assets/animations/rightMomie.png',
@@ -77,6 +85,7 @@ export class MainCave extends Phaser.Scene{
 
         this.load.image('ennemi',"assets/images/ennemi.png");
         this.load.image('gold',"assets/items/goldGround.png");
+        this.load.image('life',"assets/items/lifeGround.png");
         this.load.image('shadow',"assets/images/shadow.png");
 
         this.load.image('coffreDevantCave',"assets/images/frontChestCave.png");
@@ -119,6 +128,7 @@ export class MainCave extends Phaser.Scene{
         // - PLAYER
 
         this.golds = this.physics.add.group({allowGravity: false,immovable : true});
+        this.lifes = this.physics.add.group({allowGravity: false,immovable : true});
 
         this.shadow = this.physics.add.image(0,0,'shadow');
 
@@ -128,6 +138,10 @@ export class MainCave extends Phaser.Scene{
         }
         else if (this.entrance == "other"){
             this.player = this.physics.add.sprite(2694, 3350, 'persoIdle').setScale(1);
+            this.player.direction = {x:0,y:-1};
+        }
+        else if (this.entrance == "donjonSword"){
+            this.player = this.physics.add.sprite(3104, 3008, 'persoIdle').setScale(1);
             this.player.direction = {x:0,y:-1};
         }
         else {
@@ -170,7 +184,7 @@ export class MainCave extends Phaser.Scene{
                 getCoffreFinal3 : false,
 
                 unlockSortieTemple : false, 
-                unlockMainCave : false,
+                unlockMainCave : true,
                 unlockPropulsa : false,
                 unlockSecret1 : false,
                 unlockSecret2 : false,
@@ -179,24 +193,26 @@ export class MainCave extends Phaser.Scene{
 
                 getSword : true,
                 getCape : true,
-                getBracelet : true,
+                getBracelet : false,
                 getBoots : true,
 
             }
         }
+
+        this.windForce = {x:0,y:0};
         
         this.playerState.canMove = true;
         this.playerState.isPropulsing = false;
         this.player.setSize(15,3).setOffset(8,61);
         this.player.setCollideWorldBounds(true);
-        if(this.playerState.getSword) {
-            this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,40));
-            this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,40,75));
-            this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,50,50));
-            this.player.zoneAttackUpDown.body.enable = false;
-            this.player.zoneAttackGaucheDroite.body.enable = false;
-            this.player.zoneAttackDiag.body.enable = false;
-        }
+        
+        this.player.zoneAttackUpDown = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,75,40));
+        this.player.zoneAttackGaucheDroite = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,40,75));
+        this.player.zoneAttackDiag = this.physics.add.existing(this.add.rectangle(this.player.x,this.player.y,50,50));
+        this.player.zoneAttackUpDown.body.enable = false;
+        this.player.zoneAttackGaucheDroite.body.enable = false;
+        this.player.zoneAttackDiag.body.enable = false;
+        
 
         this.momies = this.physics.add.group();
         const Cave_Princ_MomieTest = carteDuNiveau.getObjectLayer('Cave_Princ_MomieTest');
@@ -216,6 +232,7 @@ export class MainCave extends Phaser.Scene{
 
         this.physics.add.collider(this.player,this.coffres,this.collide, null, this);
         this.physics.add.overlap(this.shadow,this.golds, this.getGold, null, this);
+        this.physics.add.overlap(this.shadow,this.lifes, this.getLife, null, this);
         
         // Colliders Coffres
         this.physics.add.overlap(this.player.zoneAttackUpDown, this.coffres, this.lootCoffre,null,this);
@@ -252,12 +269,19 @@ export class MainCave extends Phaser.Scene{
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.on('pointerdown', () => this.click = true);
         this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
         this.keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
         this.keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
         this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         this.keySHIFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+            // - CONTRÔLE 
+            this.input.gamepad.once('connected', function (manette) {
+                console.log("Gamepad Connected");
+                this.controller = manette;
+            }, this);
 
         // - CAMERA
         this.cameras.main.setSize(1920, 1080);
@@ -270,7 +294,12 @@ export class MainCave extends Phaser.Scene{
 
         this.uiLife = this.add.sprite(1920/3.35,1080/3.35, 'uiLife').setOrigin(0,0).setScrollFactor(0).setScale(0.51);
         this.add.image(1920/3.35,1080/3.35,'uiInvGold').setOrigin(0,0).setScrollFactor(0).setScale(0.51);
-        this.textGold = this.add.text(735,356,'000x',{ fontSize:'10px',fill:'#f5ffff'}).setScrollFactor(0);
+        this.textGold = this.add.text(735,356,this.playerState.gold+'x',{ fontSize:'10px',fill:'#f5ffff'}).setScrollFactor(0);
+
+        if(this.playerState.getSword) {this.add.image(600,462,"sword").setOrigin(0,0).setScrollFactor(0).setScale(0.75);}
+        if(this.playerState.getCape) {this.add.image(600,538,"cape").setOrigin(0,0).setScrollFactor(0).setScale(0.75);}
+        if(this.playerState.getBracelet) {this.add.image(600,612,"braceletInv").setOrigin(0,0).setScrollFactor(0).setScale(0.75);}
+        if(this.playerState.getBoots) {this.add.image(599,690,"boot").setOrigin(0,0).setScrollFactor(0).setScale(0.75);}
 
         // - ANIMATIONS
 
@@ -381,6 +410,12 @@ export class MainCave extends Phaser.Scene{
             frameRate: 6,
             repeat: -1
         });
+        this.anims.create({
+            key: 'bracelet',
+            frames: this.anims.generateFrameNumbers('bracelet', {start:0,end:8}),
+            frameRate: 9,
+            repeat: 0
+        });
 
         // Animations Momies
         this.anims.create({
@@ -440,7 +475,7 @@ export class MainCave extends Phaser.Scene{
         // - ATTAQUE
 
         if (this.playerState.getSword){
-            if (this.click && 
+            if ((this.click || this.controller.X) && 
                 !this.playerState.isAttacking && 
                 !this.playerState.isPropulsing && 
                 !this.playerState.isFalling){
@@ -454,10 +489,24 @@ export class MainCave extends Phaser.Scene{
             };
         }
 
+        // - CAPE
+        if (this.playerState.getCape){
+            if((Phaser.Input.Keyboard.JustDown(this.keyC) || this.controller.Y) && !this.playerState.isPropulsing && !this.playerState.isAttacking){
+                if (this.playerState.isCaping){
+                    this.player.setTint(0xffffff);
+                    this.playerState.isCaping = false;
+                }
+                else{
+                    this.player.setTint(0xff4967);
+                    this.playerState.isCaping = true;
+                }
+            }
+        }
+
         // - PROPULSA
 
         if (this.playerState.getBoots){
-            if (Phaser.Input.Keyboard.JustDown(this.keySHIFT) && !this.playerState.isAttacking && !this.playerState.isFalling && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
+            if ((Phaser.Input.Keyboard.JustDown(this.keySHIFT) || this.controller.A) && !this.playerState.isAttacking && !this.playerState.isFalling&& !this.playerState.isCaping && !this.playerState.isPropulsing && (Math.abs(this.player.direction.x) != Math.abs(this.player.direction.y))){
                 this.playerState.canMove = false;
                 this.playerState.isPropulsing = true;
                 this.propulsing();
@@ -473,11 +522,12 @@ export class MainCave extends Phaser.Scene{
         }
 
         // TRIGGERS BRACELET
-        if (this.playerState.getBracelet && Phaser.Input.Keyboard.JustDown(this.keyA) && !this.playerState.isAttacking && !this.playerState.isPropulsing){
+        if (this.playerState.getBracelet && (Phaser.Input.Keyboard.JustDown(this.keyA) || this.controller.B) && !this.playerState.isAttacking && !this.playerState.isPropulsing){
 
             this.player.setVelocityX(0);
             this.player.setVelocityY(0); 
             this.playerState.canMove = false;
+            this.player.anims.play("bracelet",true);
             this.cameras.main.fadeOut(300, 184, 231, 249);
             this.time.delayedCall(300, () => {
                 this.cameras.main.fadeIn(1000, 184, 231, 249);
@@ -510,6 +560,17 @@ export class MainCave extends Phaser.Scene{
 					this.scene.start('Outdoor', {entrance: "mainCave2", playerState : this.playerState});
 			})
         }
+        else if (this.canOut && (this.player.body.position.x <= 3168 && this.player.body.position.x >= 3072 && this.player.body.position.y <= 2944)){
+            this.canOut = false;
+            this.cameras.main.fadeOut(400, 35, 22, 21);
+            this.playerState.canMove = false;
+            this.player.setVelocityX(this.player.body.velocity.x/5);
+            this.player.setVelocityY(this.player.body.velocity.y/5); 
+
+			this.time.delayedCall(500, () => {
+					this.scene.start('DonjonSword', {entrance: "mainCave2", playerState : this.playerState});
+			})
+        }
 
         // - MOVEMENT
 
@@ -524,75 +585,129 @@ export class MainCave extends Phaser.Scene{
 
         // - DEPLACEMENT ET ANIMATION
 
-        if (this.keyQ.isDown && (!this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown)){
+        if ((this.keyQ.isDown || this.controller.left) && (!this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown && !this.controller.right && !this.controller.down && !this.controller.up)){
             this.playerState.isMoving = true;
             this.player.direction = {x : -1, y : 0};
-            this.player.setVelocityX(-PLAYER_SPEED); 
-            this.player.setVelocityY(0);
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(-PLAYER_SPEED/2);
+                this.player.setVelocityY(0);
+            }
+            else{
+                this.player.setVelocityX(-PLAYER_SPEED); 
+                this.player.setVelocityY(0  + this.windForce.y);
+            }
             this.player.anims.play('left', true); 
         }
 
-        if (this.keyQ.isDown && this.keyZ.isDown && (!this.keyD.isDown && !this.keyS.isDown)){
+        if (((this.keyQ.isDown && this.keyZ.isDown)||(this.controller.left && this.controller.up))&& (!this.keyD.isDown && !this.keyS.isDown && !this.controller.down && !this.controller.right)){
             this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : 1};
-            this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2)/2); 
-            this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2/2)); 
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(-PLAYER_SPEED/2 * (Math.SQRT2)/2); 
+                this.player.setVelocityY(-PLAYER_SPEED/2 * (Math.SQRT2/2)); 
+            }
+            else{
+                this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2)/2); 
+                this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2/2)  + this.windForce.y); 
+            }
             this.player.anims.play('left', true); 
         }
 
-        if (this.keyQ.isDown && this.keyS.isDown && (!this.keyD.isDown && !this.keyZ.isDown)){
+        if (((this.keyQ.isDown && this.keyS.isDown)||(this.controller.left && this.controller.down)) && (!this.keyD.isDown && !this.keyZ.isDown && !this.controller.right && !this.controller.up)){
             this.playerState.isMoving = true;
             this.player.direction = { x : -1, y : -1};
-            this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2/2));
-            this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2/2));
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(-PLAYER_SPEED/2 * (Math.SQRT2/2));
+                this.player.setVelocityY(PLAYER_SPEED/2 * (Math.SQRT2/2));
+            }
+            else{
+                this.player.setVelocityX(-PLAYER_SPEED * (Math.SQRT2/2));
+                this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2/2) + this.windForce.y);
+            }
             this.player.anims.play('left', true); 
         }
 
 
-        if (this.keyD.isDown && (!this.keyQ.isDown && !this.keyS.isDown && !this.keyZ.isDown)){ //sinon si la touche droite est appuyée
+        if ((this.keyD.isDown || this.controller.right) && (!this.keyQ.isDown && !this.keyS.isDown && !this.keyZ.isDown && !this.controller.left && !this.controller.down && !this.controller.up)){ //sinon si la touche droite est appuyée
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 0};
-            this.player.setVelocityX(PLAYER_SPEED);
-            this.player.setVelocityY(0);
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(PLAYER_SPEED/2);
+                this.player.setVelocityY(0);
+            }
+            else{
+                this.player.setVelocityX(PLAYER_SPEED);
+                this.player.setVelocityY(0 + this.windForce.y);
+            }
             this.player.anims.play('right', true); 
         }
 
-        if (this.keyD.isDown && this.keyS.isDown && (!this.keyQ.isDown && !this.keyZ.isDown)){
+        if (((this.keyD.isDown && this.keyS.isDown)||(this.controller.right && this.controller.down))&& (!this.keyQ.isDown && !this.keyZ.isDown && !this.controller.left && !this.controller.up)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : -1};
-            this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
-            this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2)/2);
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(PLAYER_SPEED/2 * (Math.SQRT2)/2); 
+                this.player.setVelocityY(PLAYER_SPEED/2 * (Math.SQRT2)/2);
+            }
+            else{
+                this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
+                this.player.setVelocityY(PLAYER_SPEED * (Math.SQRT2)/2 + this.windForce.y);
+            }
             this.player.anims.play('right', true); 
         }
 
-        if (this.keyD.isDown && this.keyZ.isDown && (!this.keyQ.isDown && !this.keyS.isDown)){
+        if (((this.keyD.isDown && this.keyZ.isDown)||(this.controller.right && this.controller.up)) && (!this.keyQ.isDown && !this.keyS.isDown && !this.controller.down && !this.controller.left)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 1, y : 1};
-            this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
-            this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2)/2);
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(PLAYER_SPEED/2 * (Math.SQRT2)/2); 
+                this.player.setVelocityY(-PLAYER_SPEED/2 * (Math.SQRT2)/2);
+            }
+            else{
+                this.player.setVelocityX(PLAYER_SPEED * (Math.SQRT2)/2); 
+                this.player.setVelocityY(-PLAYER_SPEED * (Math.SQRT2)/2 + this.windForce.y);
+            }
             this.player.anims.play('right', true); 
         }
 
-        if (this.keyS.isDown && (!this.keyD.isDown && !this.keyQ.isDown && !this.keyZ.isDown)){
+        if ((this.keyS.isDown || this.controller.down) && (!this.keyD.isDown && !this.keyQ.isDown && !this.keyZ.isDown && !this.controller.right && !this.controller.left && !this.controller.up)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : -1};
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(PLAYER_SPEED);
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(0);
+                this.player.setVelocityY(PLAYER_SPEED/2);
+            }
+            else{
+                this.player.setVelocityX(0);
+                this.player.setVelocityY(PLAYER_SPEED + this.windForce.y);
+            }
             this.player.anims.play('front',true);
         }
 
-        if (this.keyZ.isDown && (!this.keyD.isDown && !this.keyS.isDown && !this.keyQ.isDown)){
+        if ((this.keyZ.isDown || this.controller.up) && (!this.keyD.isDown && !this.keyS.isDown && !this.keyQ.isDown && !this.controller.right && !this.controller.down && !this.controller.left)){
             this.playerState.isMoving = true;
             this.player.direction = { x : 0, y : 1};
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(-PLAYER_SPEED);
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(0);
+                this.player.setVelocityY(-PLAYER_SPEED/2);
+            }
+            else{
+                this.player.setVelocityX(0);
+                this.player.setVelocityY(-PLAYER_SPEED + this.windForce.y);
+            }
             this.player.anims.play('back',true);
         }
 
-        if (!this.keyQ.isDown && !this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown){ 
+        if ((!this.keyQ.isDown && !this.keyD.isDown && !this.keyS.isDown && !this.keyZ.isDown) || (!this.controller.left && !this.controller.right && !this.controller.up && this.controller.down)){ 
             this.playerState.isMoving = false; 
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0); 
+            if (this.playerState.isCaping){
+                this.player.setVelocityX(0);
+                this.player.setVelocityY(0);
+            }
+            else{
+                this.player.setVelocityX(0);
+                this.player.setVelocityY(0 + this.windForce.y); 
+            }
             this.player.anims.play('idle',true); 
         }
     }
@@ -706,12 +821,15 @@ export class MainCave extends Phaser.Scene{
     }
 
     propulsing(){
+        
         if (this.player.direction.x != 0){
+            this.player.setVelocityY(0);
             this.player.setVelocityX((PLAYER_SPEED*2) * this.player.direction.x);
             if (this.player.direction.x == -1) this.player.anims.play("propulsaLeft",true);
             else this.player.anims.play("propulsaRight",true)
         }
         else {
+            this.player.setVelocityX(0);
             this.player.setVelocityY((PLAYER_SPEED*2) * -this.player.direction.y);
             if (this.player.direction.y == -1) this.player.anims.play("propulsaBot",true);
             else this.player.anims.play("propulsaTop",true)
@@ -728,13 +846,20 @@ export class MainCave extends Phaser.Scene{
     }
 
     dropGold(x,y,nb){
+        var spawnLife = Math.floor(Math.random()*3)
+        console.log(spawnLife);
         this.time.addEvent({        
-            delay : nb,
+            delay : 40,
             callback : () => {
                 this.golds.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"gold").setScale(0.85).setAlpha(0.9);
             },
             repeat : nb
         })
+        if (spawnLife == 0){
+            this.time.delayedCall(400, () => {
+                this.lifes.create(Math.floor((Math.random()*20)-5) + x,Math.floor((Math.random()*30)-5) + y,"life").setScale(0.85).setAlpha(0.9);
+            })
+        }
     }
 
     getGold(player, gold){
@@ -745,6 +870,16 @@ export class MainCave extends Phaser.Scene{
         gold.alpha = 0;
             
     }
+
+    getLife(player, life){   
+        if(this.playerState.hp < 5){
+            this.playerState.hp += 1;
+        }
+        life.body.enable = false;
+        life.alpha = 0;
+            
+    }
+
 
     collide(){
         if (this.playerState.isPropulsing)this.playerState.isColliding = true;
@@ -765,54 +900,62 @@ export class MainCave extends Phaser.Scene{
                 {x: 1, y: -1},
             ];
 
-            var angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, momie.x, momie.y);
-            let index = Math.round(angle / (Math.PI / 4)) + 4;
-            index > 7 ? index -= 8 : index;
-            momie.direction = directions[index];
-            if(momie.canMove){
+            if(Phaser.Math.Distance.Between(this.player.x, this.player.y, momie.x, momie.y) < 200){
+                var angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, momie.x, momie.y);
+                let index = Math.round(angle / (Math.PI / 4)) + 4;
+                index > 7 ? index -= 8 : index;
+                momie.direction = directions[index];
 
-                if (momie.direction.x == 0 && momie.direction.y == 1){
-                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
-                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
-                    momie.anims.play('botMomie', true)
-                }
-                if (momie.direction.x == 0 && momie.direction.y == -1){
-                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
-                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
-                    momie.anims.play('topMomie', true)
-                }
-                if (momie.direction.x == 1 && momie.direction.y == 0){
-                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
-                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
-                    momie.anims.play('rightMomie', true)
-                }
-                if (momie.direction.x == -1 && momie.direction.y == 0){
-                    momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
-                    momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
-                    momie.anims.play('leftMomie', true)
-                }
-                if (momie.direction.x == -1 && momie.direction.y == 1){
-                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.anims.play('leftMomie', true)
-                }
-                if (momie.direction.x == -1 && momie.direction.y == -1){
-                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.anims.play('leftMomie', true)
-                }
-                if (momie.direction.x == 1 && momie.direction.y == -1){
-                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.anims.play('rightMomie', true)
-                }
-                if (momie.direction.x == 1 && momie.direction.y == 1){
-                    momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
-                    momie.anims.play('rightMomie', true)
-                }
+                if(momie.canMove){
 
+                    if (momie.direction.x == 0 && momie.direction.y == 1){
+                        momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                        momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                        momie.anims.play('botMomie', true)
+                    }
+                    if (momie.direction.x == 0 && momie.direction.y == -1){
+                        momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                        momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                        momie.anims.play('topMomie', true)
+                    }
+                    if (momie.direction.x == 1 && momie.direction.y == 0){
+                        momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                        momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                        momie.anims.play('rightMomie', true)
+                    }
+                    else if (momie.direction.x == -1 && momie.direction.y == 0){
+                        momie.setVelocityX( momie.direction.x * MOMIES_SPEED );
+                        momie.setVelocityY( momie.direction.y * MOMIES_SPEED );
+                        momie.anims.play('leftMomie', true)
+                    }
+                    if (momie.direction.x == -1 && momie.direction.y == 1){
+                        momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.anims.play('leftMomie', true)
+                    }
+                    if (momie.direction.x == -1 && momie.direction.y == -1){
+                        momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.anims.play('leftMomie', true)
+                    }
+                    if (momie.direction.x == 1 && momie.direction.y == -1){
+                        momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.anims.play('rightMomie', true)
+                    }
+                    if (momie.direction.x == 1 && momie.direction.y == 1){
+                        momie.setVelocityX( momie.direction.x * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.setVelocityY( momie.direction.y * (MOMIES_SPEED * (Math.SQRT2/2)));
+                        momie.anims.play('rightMomie', true)
+                    }
+                }
             }
+            else{
+                momie.setVelocityX(0);
+                momie.setVelocityY(0);
+            }
+            
+            
         }, this)
     }
 
