@@ -454,7 +454,7 @@ export class Outdoor extends Phaser.Scene{
         if(this.playerState.getBracelet) {this.add.image(600,612,"braceletInv").setOrigin(0,0).setScrollFactor(0).setScale(0.75);}
         if(this.playerState.getBoots) {this.add.image(599,690,"boot").setOrigin(0,0).setScrollFactor(0).setScale(0.75);}
 
-        this.textFin = this.add.text(725,450,"0",{ fontSize:'40px',fill:'#ff4967', fontStyle:"bold"}).setScrollFactor(0);
+        this.textFin = this.add.text(700,450,"0",{ fontSize:'40px',fill:'#ff4967', fontStyle:"bold"}).setScrollFactor(0);
 
         // - ANIMATIONS
 
